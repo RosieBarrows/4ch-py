@@ -1,8 +1,8 @@
 import os
 import sys
 
-from py_vent_fibres.json_utils import *
-from py_vent_fibres.meshtools_utils import *
+from common_4ch.json_utils import *
+from common_4ch.meshtools_utils import *
 
 import argparse
 import warnings
@@ -14,7 +14,6 @@ def main(args):
 	warnings.warn("MAKE SURE INPUT TAGS ARE CORRECT")
 
 	input_tags = load_json(args.input_tags_setup)
-	# seg_tags = load_json(args.seg_tags_setup)
 	apexFolder = args.apex_septum_setup
 
 	heartFolder = args.heartFolder

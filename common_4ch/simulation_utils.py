@@ -1,5 +1,5 @@
 import numpy as np
-from common.file_utils import *
+from common_4ch.file_utils import *
 import os
 import sys
 import copy

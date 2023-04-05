@@ -1,8 +1,8 @@
 import os
 import sys
 
-from py_vent_fibres.json_utils import *
-from py_vent_fibres.meshtools_utils import *
+from common_4ch.json_utils import *
+from common_4ch.meshtools_utils import *
 
 import argparse
 import warnings

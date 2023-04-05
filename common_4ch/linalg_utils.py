@@ -2,7 +2,7 @@ import numpy as np
 import os
 import copy
 
-from common.file_utils import *
+from common_4ch.file_utils import *
 
 def rotation_matrix(axis,theta):
     R = np.zeros((3,3), dtype=float)

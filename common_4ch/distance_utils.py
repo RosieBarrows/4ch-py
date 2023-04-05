@@ -8,7 +8,7 @@ import copy
 
 import pyvista as pv
 
-from common.file_utils import *
+from common_4ch.file_utils import *
 
 def calculate_rotation(ax, theta):
 

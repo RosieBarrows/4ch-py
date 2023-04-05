@@ -4,8 +4,8 @@ import numpy as np
 import copy
 import meshio
 
-from common.file_utils import *
-from common.distance_utils import *
+from common_4ch.file_utils import *
+from common_4ch.distance_utils import *
 
 import os
 import sys

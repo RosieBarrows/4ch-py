@@ -3,7 +3,7 @@
 clear
 
 INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
-input_tags="./parfiles/tags_presim"
+input_tags="./parfiles/tags_presim.json"
 apex_septum="./parfiles/apex_septum_templates/"
 
 CMD="python main_surfs.py --heartFolder ${INPUT_heartFolder}

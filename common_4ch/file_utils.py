@@ -1,6 +1,5 @@
 import numpy as np
 import copy
-import pygeodesic.geodesic as geodesic
 import json
 import meshio
 import vtk

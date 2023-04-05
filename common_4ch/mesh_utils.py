@@ -1,9 +1,17 @@
 import numpy as np
 import os
 import trimesh
+import sys
+import copy
+import meshio
+from tqdm import tqdm
+import time
+import json
+from scipy import spatial
 
-from common.file_utils import *
-from common.linalg_utils import *
+from common_4ch.motion_volume import *
+from common_4ch.file_utils import *
+from common_4ch.linalg_utils import *
 
 def compute_elemCenters(meshname,
 						el_type):
