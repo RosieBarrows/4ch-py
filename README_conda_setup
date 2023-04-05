@@ -1,0 +1,12 @@
+To set up conda environment to run scripts:
+
+conda create -n example_env python=3.9
+
+pip install: 	numpy
+		pygeodesic
+		meshio
+		vtk
+		tqdm
+		pyvista
+		trimesh
+		scipy
