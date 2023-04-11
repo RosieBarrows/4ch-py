@@ -1,8 +1,8 @@
 import os
 import sys
 
-from py_atrial_fibres.json_utils import *
-from py_atrial_fibres.meshtools_utils import *
+from common_4ch.json_utils import *
+from common_4ch.meshtools_utils import *
 
 import argparse
 import warnings
@@ -14,7 +14,6 @@ def main(args):
 	warnings.warn("The following executables should be in your PATH: carp.pt, igbextract, GlVTKConvert.")
 
 	input_tags = load_json(args.input_tags_setup)
-	output_tags = load_json(args.output_tags_setup)
 
 	meshname = args.meshname
 	output_folder = args.outdir
@@ -117,9 +116,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--input_tags_setup', type=str, default="./parfiles/input_tags_setup.json",
                         help='Provide json file with input tags settings')
-
-    parser.add_argument('--output_tags_setup', type=str, default="./parfiles/output_tags_setup.json",
-                        help='Provide json file with output tags settings (for Milan fibres)')
 
     parser.add_argument('--raa_apex_file', type=str, default=None,
                         help='Provide txt file with coordinate of the right atrial appendage tip')

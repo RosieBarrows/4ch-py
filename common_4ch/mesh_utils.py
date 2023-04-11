@@ -25,7 +25,7 @@ def compute_elemCenters(meshname,
 		pts_el = pts[el,:]
 		cog_el[i,:] = np.mean(pts_el,axis=0)
 	
-	write_pts(cog_el,meshname+"_elemCenters.pts")
+	write_pts_caroline(cog_el,meshname+"_elemCenters.pts")
 
 def laplace_endo2elem(meshname,
 					  phi_nodes,

@@ -101,7 +101,7 @@ def find_landmarks(output_folder,
 	landmarks_visualise = np.zeros((7,3),dtype=float)
 	landmarks_visualise[0,:] = landmarks[0,:]
 	landmarks_visualise[1:,:] = landmarks
-	write_pts(landmarks_visualise,output_folder+'/la/landmarks.pts')
+	write_pts_caroline(landmarks_visualise,output_folder+'/la/landmarks.pts')
 	np.savetxt(output_folder+"/la/prodLaLandmarks.txt",landmarks,delimiter=',')
 
 	region_landmarks = np.zeros((6,3),dtype=float)
@@ -112,7 +112,7 @@ def find_landmarks(output_folder,
 	landmarks_visualise = np.zeros((7,3),dtype=float)
 	landmarks_visualise[0,:] = region_landmarks[0,:]
 	landmarks_visualise[1:,:] = region_landmarks
-	write_pts(landmarks_visualise,output_folder+'/la/landmarks_regions.pts')
+	write_pts_caroline(landmarks_visualise,output_folder+'/la/landmarks_regions.pts')
 
 	# ------------------------------------------------------------------------- #
 
@@ -150,7 +150,7 @@ def find_landmarks(output_folder,
 
 	landmarks_visualise[0,:] = landmarks_rearranged[0,:]
 	landmarks_visualise[1:,:] = landmarks_rearranged
-	write_pts(landmarks_visualise,output_folder+'/ra/landmarks.pts')
+	write_pts_caroline(landmarks_visualise,output_folder+'/ra/landmarks.pts')
 	np.savetxt(output_folder+"/ra/prodRaLandmarks.txt",landmarks_rearranged,delimiter=',')
 
 	region_landmarks = np.zeros((6,3),dtype=float)
@@ -162,7 +162,7 @@ def find_landmarks(output_folder,
 	landmarks_visualise = np.zeros((7,3),dtype=float)
 	landmarks_visualise[0,:] = region_landmarks[0,:]
 	landmarks_visualise[1:,:] = region_landmarks
-	write_pts(landmarks_visualise,output_folder+'/ra/landmarks_regions.pts')
+	write_pts_caroline(landmarks_visualise,output_folder+'/ra/landmarks_regions.pts')
 
 def read_surfaces(output_folder,
 				  chamber,

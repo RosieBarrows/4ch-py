@@ -4,8 +4,8 @@ import sys
 import argparse
 import warnings
 
-from py_pre_sim.json_utils import *
-from py_pre_sim.mesh_utils import *
+from common_4ch.json_utils import *
+from common_4ch.mesh_utils import *
 
 def main(args):
 

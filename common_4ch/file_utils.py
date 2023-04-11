@@ -118,15 +118,16 @@ def reindex_surf(vtx_surf,
 
 	return surf_reindexed
 
-def write_surf(filename,surf):
+def write_surf_caroline(filename,surf):
 	print('Writing '+filename+'...')
+	print("Check you are using the correct write_surf function")
 
 	with open(filename, 'w') as fp:
 		fp.write('{}\n'.format(surf.shape[0]))
 		for t in surf:
 			fp.write('Tr {} {} {}\n'.format(int(t[0]),int(t[1]),int(t[2])))
 
-def write_pts(pts,filename):
+def write_pts_caroline(pts,filename):
 
 	print('Writing '+filename+'...')
 
@@ -137,7 +138,7 @@ def write_pts(pts,filename):
 			fp.write('{0[0]} {0[1]} {0[2]}\n'.format(pnt))
 	fp.close()
 
-def write_elem(elem,
+def write_elem_caroline(elem,
 			   tags,
 			   filename,
 			   el_type='Tt'):

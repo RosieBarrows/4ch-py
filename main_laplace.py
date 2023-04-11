@@ -1,7 +1,7 @@
 import os
 import sys
 
-from py_atrial_fibres.file_utils import *
+from common_4ch.file_utils import *
 
 import argparse
 import warnings

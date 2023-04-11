@@ -1,9 +1,9 @@
 import os
 import sys
 
-from py_atrial_fibres.file_utils import *
-from py_atrial_fibres.mesh_utils import *
-from py_atrial_fibres.linalg_utils import *
+from common_4ch.file_utils import *
+from common_4ch.mesh_utils import *
+from common_4ch.linalg_utils import *
 
 import argparse
 import warnings

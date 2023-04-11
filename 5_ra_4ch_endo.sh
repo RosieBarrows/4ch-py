@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ $# -eq 0 ] ; then
-    >&2 echo 'No arguments supplied'
-    >&2 echo '    EXAMPLE_FOLDER'
-    exit 1
-fi
+# if [ $# -eq 0 ] ; then
+#     >&2 echo 'No arguments supplied'
+#     >&2 echo '    EXAMPLE_FOLDER'
+#     exit 1
+# fi
 
+heart_folder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
 
-heart_folder=$1
 DATA="${heart_folder}/atrial_fibres/UAC"
 
 me=$(basename "$0" | awk -F. '{print $1}')

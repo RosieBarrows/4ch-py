@@ -1,6 +1,6 @@
 #!/bin/bash
 
-heart_folder=$1
+heart_folder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
 FCH="${heart_folder}/surfaces_uvc/myocardium_bayer_60_-60"
 UACFOLDER="${heart_folder}/atrial_fibres/UAC/"
 

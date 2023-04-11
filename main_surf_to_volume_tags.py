@@ -1,8 +1,8 @@
 import os
 import sys
 
-from py_atrial_fibres.file_utils import *
-from py_atrial_fibres.mesh_utils import *
+from common_4ch.file_utils import *
+from common_4ch.mesh_utils import *
 
 import argparse
 import warnings
@@ -81,7 +81,7 @@ def main(args):
 
 	elem = read_elem(meshname_3d+".elem",el_type='Tt',tags=False)
 	region_tags = np.loadtxt(args.outmeshname+".dat",dtype=int)
-	write_elem(elem,
+	write_elem_caroline(elem,
 			   region_tags,
 			   args.outmeshname+".elem",
 			   el_type='Tt')

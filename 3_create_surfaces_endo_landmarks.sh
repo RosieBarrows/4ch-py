@@ -1,7 +1,9 @@
 #!/bin/bash
 
-scripts_path="/data/Dropbox/cemrg_docker_scripts/4ch-py"
-heart_name=$1
+INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
+
+scripts_path="/data/Dropbox/4ch-py"
+heart_name=${INPUT_heartFolder}
 
 cmd="mkdir ${heart_name}/atrial_fibres"
 

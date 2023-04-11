@@ -550,8 +550,8 @@ def export_LA_vtk_msh(output_folder,
 	la_endo_tr = la_tr[la_endo_eidx,:]
 	la_epi_tr = la_tr[la_epi_eidx,:]
 
-	write_surf(output_folder+"/la/la_epi.surf",la_epi_tr)
-	write_surf(output_folder+"/la/la_endo.surf",la_endo_tr)
+	write_surf_caroline(output_folder+"/la/la_epi.surf",la_epi_tr)
+	write_surf_caroline(output_folder+"/la/la_endo.surf",la_endo_tr)
 
 	mitral_tr = read_elem(output_folder+"/la/mitral.surf",el_type="Tr",tags=False)
 	rpv_tr = read_elem(output_folder+"/la/rpv.surf",el_type="Tr",tags=False)
@@ -637,8 +637,8 @@ def export_vtk_meshes_caroline(output_folder,
 	la_endo_tr = la_tr[la_endo_eidx,:]
 	la_epi_tr = la_tr[la_epi_eidx,:]
 
-	write_surf(output_folder+"/la/la_epi.surf",la_epi_tr)
-	write_surf(output_folder+"/la/la_endo.surf",la_endo_tr)
+	write_surf_caroline(output_folder+"/la/la_epi.surf",la_epi_tr)
+	write_surf_caroline(output_folder+"/la/la_endo.surf",la_endo_tr)
 
 	tets = read_elem(output_folder+"/ra/ra.elem",el_type="Tt",tags=False)
 	pts = read_pts(output_folder+"/ra/ra.pts")
@@ -685,8 +685,8 @@ def export_vtk_meshes_caroline(output_folder,
 	ra_rv_tr = read_elem(output_folder+"/ra/ra_rv.surf",el_type="Tr",tags=False)
 	ra_epi_tr = np.concatenate((ra_epi_tr,ra_rv_tr),axis=0)
 
-	write_surf(output_folder+"/ra/ra_epi.surf",ra_epi_tr)
-	write_surf(output_folder+"/ra/ra_endo.surf",ra_endo_tr)
+	write_surf_caroline(output_folder+"/ra/ra_epi.surf",ra_epi_tr)
+	write_surf_caroline(output_folder+"/ra/ra_endo.surf",ra_endo_tr)
 
 	print('-----------------------------------------------------')
 	print('Finding LA and RA landmarks...')
@@ -783,8 +783,8 @@ def export_RA_vtk_msh(output_folder,
 	ra_endo_tr = ra_tr[ra_endo_eidx,:]
 	ra_epi_tr = ra_tr[ra_epi_eidx,:]
 
-	write_surf(output_folder+"/ra/ra_epi.surf",ra_epi_tr)
-	write_surf(output_folder+"/ra/ra_endo.surf",ra_endo_tr)
+	write_surf_caroline(output_folder+"/ra/ra_epi.surf",ra_epi_tr)
+	write_surf_caroline(output_folder+"/ra/ra_endo.surf",ra_endo_tr)
 
 	tricuspid_tr = read_elem(output_folder+"/ra/tricuspid.surf",el_type="Tr",tags=False)
 	svc_tr = read_elem(output_folder+"/ra/svc.surf",el_type="Tr",tags=False)
