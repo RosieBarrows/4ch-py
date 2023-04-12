@@ -56,13 +56,6 @@ def main(args):
 	print(" ## Mapping surfaces ## ")
 	mapping_surfaces(mesh,surf_folder,input_tags)
 
-	# # # ----------------------------------------------------------------------------------------------
-	# # # Picking the apex
-	# # # ----------------------------------------------------------------------------------------------
-	# # print(" ## Picking the apex ## ")
-	# # segmentation=heartFolder+"/meshing/myocardium.nrrd"
-	# # picking_apex(segmentation,mesh,surf_folder,seg_tags)
-
 	# ----------------------------------------------------------------------------------------------
 	# Removing the septum
 	# ----------------------------------------------------------------------------------------------
@@ -138,6 +131,8 @@ def main(args):
 	os.system("cp "+apexFolder+"/ra.lvapex.vtx "+surf_folder_ra+"/ra/ra.lvapex.vtx")
 	os.system("cp "+apexFolder+"/ra.rvsept_pt.vtx "+surf_folder_ra+"/ra/ra.rvsept_pt.vtx")
 
+	print(" ## Copying blank file for RAA apex ## ")
+	os.system("cp "+apexFolder+"/raa_apex.txt "+heartFolder+"/raa_apex.txt")
 
 
 if __name__ == '__main__':
@@ -150,9 +145,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--input_tags_setup', type=str, default="./parfiles/input_tags_setup.json",
                         help='Provide json file with input tags settings')
-
-    # parser.add_argument('--seg_tags_setup', type=str, default="./parfiles/seg_tags_setup.json",
-    #                     help='Provide json file with segmentation tags settings')
 
     parser.add_argument('--apex_septum_setup', type=str, default="./parfiles/apex_septum_templates",
                         help='Provide folder with templates for LA/RA apex and septum vtx files')
