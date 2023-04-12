@@ -17,6 +17,8 @@ Confirm everything has been installed. First, activate the environment `conda ac
 python docker/check_installs.py 
 ```
 
+## Usage 
+
 Deactivate your base environment and activate your conda environment. 
 
 
