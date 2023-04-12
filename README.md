@@ -23,7 +23,7 @@ example_mesh:
 *If the folder containing your mesh is not called myocardium_OUT (or your mesh is not called myocardium), you will need to change this parameter within the file main_surf.py.*
 
 
-Within the parfiles folder (within this scripts folder) there is a parfiles folder. Change the name in heartFolder.txt to the name of your heart folder i.e. example heart. 
+Within the parfiles folder (within this scripts folder) there is a parfiles folder. Change the name within heartFolder.txt to the path of your heart folder i.e. /data/Dropbox/example heart. 
 
 **Check that the tags in tags_vent_fibres.json match those of your mesh and change if necessary**
 
@@ -34,7 +34,7 @@ Use the la.vtk (in surfaces_uvc_LA/la/) to select a point for the LA apex and a 
 
 Repeat this step for the RA using ra.vtk.
 
-Finally, select the apex of the RAA (right atrial appendage) and save the 3 coordinates of this point in ${heart_folder}/raa_apex.vtx
+Finally, select the apex of the RAA (right atrial appendage) and save the 3 coordinates of this point (with spaces in between each coordinate) in ${heart_folder}/raa_apex.vtx
 
 Within the ./parfiles/etags/ folder:
 
@@ -45,6 +45,7 @@ Within the ./parfiles/etags/ folder:
 3. Open the etags_ra.sh file. Change the value of T_LV to be the !! RA !! label in your mesh.
 
 **MAKE SURE YOU HAVE A VALID CARP LICENSE (used for mguvc command)**
+**NOTE - YOUR VERSION OF CARP MUST BE THE VERSION THAT INCLUDES A --CUSTOM-APEX FLAG FOR THE UVCS**
 
 Run:  
    `bash 1_calculate_UVCs.sh`
@@ -63,7 +64,7 @@ Run:
    `bash 5_ra_4ch_endo.sh`  
    `bash 6_map_2d_to_3d.sh`
 
-Use the vtk (myocardium_fibres_l.vtk) to check that the ventricular and atrial fibres appear as expected. 
+Use the vtk (myocardium_fibres_l.vtk in the atrial_fibres folder) to check that the ventricular and atrial fibres appear as expected. 
 
 **Check that the labels in tags_presim.json match the labels in your mesh**
 
