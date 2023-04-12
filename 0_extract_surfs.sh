@@ -14,6 +14,7 @@ eval $CMD
 echo ;
 echo ;
 echo " ### !! USER ACTION REQUIRED !! ### "
-echo " ### You must now select an point for the apex and a point for the septum on both the LA and RA ### "
+echo " ### You must now select a point for the apex and a point for the septum on both the LA and RA ### "
+echo " ### Then you must select a point for apex of the right atrial appendage ###"
 echo ;
 echo ;
