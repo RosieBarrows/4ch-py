@@ -28,7 +28,7 @@ Within the parfiles folder (within this scripts folder) there is a parfiles fold
 **Check that the tags in tags_vent_fibres.json match those of your mesh and change if necessary**
 
 Run:  
-`bash 0_extract_surfs.sh in terminal`
+   `bash 0_extract_surfs.sh in terminal`
 
 Use the la.vtk (in surfaces_uvc_LA/la/) to select a point for the LA apex and a point for the LA septum. Save the Point IDs in la.lvapex.vtx and la.rvspet_pt.vtx, respectively (blank files provided in surfaces_uvc_LA/la/).
 
@@ -47,33 +47,33 @@ Within the ./parfiles/etags/ folder:
 **MAKE SURE YOU HAVE A VALID CARP LICENSE (used for mguvc command)**
 
 Run:  
-`bash 1_calculate_UVCs.sh`
+   `bash 1_calculate_UVCs.sh`
 
 In the bash 2_add_vent_fibres.sh file, **check that the four_chamber_name parameter matches the name of your four chamber mesh.**
 Also **check that the path to your CARP_FOLDER is correct.** 
 
 Run:  
-`bash 2_add_vent_fibres.sh`
+   `bash 2_add_vent_fibres.sh`
 
 **Check that the labels in tags_atrial_fibres.json match the labels in your mesh.**
 
 Run:  
-`bash 3_create_surfaces_endo_landmarks.sh`  
-`bash 4_la_4ch_endo.sh`  
-`bash 5_ra_4ch_endo.sh`  
-`bash 6_map_2d_to_3d.sh`
+   `bash 3_create_surfaces_endo_landmarks.sh`  
+   `bash 4_la_4ch_endo.sh`  
+   `bash 5_ra_4ch_endo.sh`  
+   `bash 6_map_2d_to_3d.sh`
 
-Use the vtk () to check that the ventricular and atrial fibres appear as expected. 
+Use the vtk (myocardium_fibres_l.vtk) to check that the ventricular and atrial fibres appear as expected. 
 
 **Check that the labels in tags_presim.json match the labels in your mesh**
 
 *If you would like to change the location of the Bachmann bundle, this can be done in ./parfiles/bachmann_bundle_fec_settings.json*
 
 Run:  
-`bash 7_define_tags.sh`  
-`bash 8_extract_surfs.sh`
+   `bash 7_define_tags.sh`  
+   `bash 8_extract_surfs.sh`
 
 If you need different labels for the fast endocardial conduction zones in the LV and RV (because you need to assign distinct material/conduction parameters in these regions), run:  
-`bash 9_split_fec.sh`
+   `bash 9_split_fec.sh`
 
 To complete the simulation folder, use the vtk (myocardium_AV_FEC_BB.vtk or myocardium_AV_FEC_BB_lvrv.vtk) to select a point for the apex and the sinoatrial node. Save these within the simulation folder as myocardium_AV_FEC_BB_apex.vtx and myocardium_AV_FEC_BB_SA.vtx, respectively. 
