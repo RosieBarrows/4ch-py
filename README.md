@@ -6,6 +6,17 @@
 
 Set up a conda environment with the packages listed in README_conda_setup.md 
 
+## Quick start 
+Set up your anaconda environment with `conda create -n 4ch python=3.9 -y`.
+Then install the requirements using `pip`: 
+```sh
+pip install -r requirements.txt
+```
+Confirm everything has been installed. First, activate the environment `conda activate 4ch`, then type: 
+```sh
+python docker/check_installs.py 
+```
+
 Deactivate your base environment and activate your conda environment. 
 
 

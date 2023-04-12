@@ -1,0 +1,7 @@
+numpy
+meshio
+vtk
+tqdm
+pyvista
+trimesh
+scipy
