@@ -3,7 +3,7 @@
 clear
 
 INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
-input_tags="./parfiles/input_tags_setup"
+input_tags="./parfiles/tags_vent_fibres.json"
 etags="./parfiles/etags/"
 apex_septum="./parfiles/apex_septum_templates/"
 
