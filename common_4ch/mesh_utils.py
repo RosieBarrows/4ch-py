@@ -601,19 +601,17 @@ def separate_FEC_lvrv(elem_file,
 	# should be a numpy array
 	rv_eidx = np.where(original_tags == str(new_tags_settings["RV"]))
 	fec_eidx = np.where(fec_tags == str(original_tags_settings["FEC"]))
-	print(fec_eidx)								
-	print(type(fec_eidx))
 	print('Extracted LV, FEC and RV')
 
 	new_tags = copy.deepcopy(fec_tags)
 	for eidx in fec_eidx:
 		intersection_rv = np.intersect1d(elem[eidx,0:-1],rv_endo_vtx)
 		if original_tags[eidx]==1 and len(intersection_rv)==0:
-			new_tags[eidx] = new_tags_settings["FEC_LV"][0]
+			new_tags[eidx] = new_tags_settings["FEC_LV"]
 		elif original_tags[eidx]==1 and len(intersection_rv)>0:
-			new_tags[eidx] = new_tags_settings["FEC_SV"][0]
+			new_tags[eidx] = new_tags_settings["FEC_SV"]
 		else:
-			new_tags[eidx] = new_tags_settings["FEC_RV"][0]
+			new_tags[eidx] = new_tags_settings["FEC_RV"]
 			
 	elem_fec[:,-1] = new_tags
 	write_tets(elem_output,elem_fec)

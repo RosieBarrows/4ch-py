@@ -3,6 +3,7 @@ import copy
 import json
 import meshio
 import vtk
+import os
 from vtk.util import numpy_support
 
 class NumpyEncoder(json.JSONEncoder):

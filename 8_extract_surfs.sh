@@ -5,7 +5,7 @@ clear
 INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/pre_sim/parfiles/heartFolder.txt)
 mesh="${INPUT_heartFolder}/atrial_fibres/myocardium_AV_FEC_BB"
 BiV_folder="${INPUT_heartFolder}/surfaces_uvc/BiV"
-input_tags="./parfiles/input_tags_setup"
+input_tags="./parfiles/tags_presim.json"
 atria_map_settings="./parfiles/atria_map_settings.json"
 fch_apex="./parfiles/myocardium_AV_FEC_BB_apex.vtx"
 fch_sa="./parfiles/myocardium_AV_FEC_BB_SA.vtx"
