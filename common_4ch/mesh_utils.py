@@ -595,12 +595,10 @@ def separate_FEC_lvrv(elem_file,
 	rv_endo_vtx = surf2vtx(rv_endo)
 	print('Done')
 
-	lv_eidx = np.where(original_tags == str(new_tags_settings["LV"]))		
-	# removed the index i.e. ["LV"][0] as ERROR - type cannot be indexed
-	# NOTE - returning a tuple which then fails at line 290 (as for loop not being given an int)
-	# should be a numpy array
-	rv_eidx = np.where(original_tags == str(new_tags_settings["RV"]))
-	fec_eidx = np.where(fec_tags == str(original_tags_settings["FEC"]))
+	lv_eidx = np.where(original_tags == new_tags_settings["LV"])[0]		
+	rv_eidx = np.where(original_tags == new_tags_settings["RV"])[0]
+	fec_eidx = np.where(fec_tags == original_tags_settings["FEC"])[0]
+
 	print('Extracted LV, FEC and RV')
 
 	new_tags = copy.deepcopy(fec_tags)
