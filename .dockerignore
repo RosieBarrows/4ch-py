@@ -1,0 +1,8 @@
+Dockerfile
+docker/Dockerfile*
+__pycache__/*
+*.pyc
+README.md
+.git/*
+examples/*
+**/.DS_Store*
