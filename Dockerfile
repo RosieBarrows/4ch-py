@@ -16,7 +16,7 @@ RUN python3 -m venv $VIRTUAL_ENV && \
     mkdir -p /code && mkdir -p /data
 
 COPY . /code/
-RUN pip install -r /code/requirements.txt 
+RUN /opt/venv/bin/python3 -m pip install -r /code/requirements.txt 
 
 WORKDIR /code/
 
