@@ -15,11 +15,12 @@ RUN python3 -m venv $VIRTUAL_ENV && \
     /opt/venv/bin/python3 -m pip install --upgrade pip && \
     mkdir -p /code && mkdir -p /data
 
-COPY . /code/
-RUN /opt/venv/bin/python3 -m pip install -r /code/requirements.txt 
+COPY ./requirements.txt /requirements.txt
+RUN /opt/venv/bin/python3 -m pip install -r /requirements.txt 
 
+COPY . /code/
 WORKDIR /code/
 
-# CMD [-h]
-# ENTRYPOINT ["/opt/venv/bin/python3", "-u", "/code/docker/entrypoint.py"]
+CMD [-h]
+ENTRYPOINT ["/opt/venv/bin/python3", "-u", "/code/docker/entrypoint.py"]
 
