@@ -137,7 +137,7 @@ def _correct_fibres(base_dir, mesh_path, debug, help=False) :
         print(_correct_fibres.__doc__)
         return
     
-    from common_4ch.create_commands import correct_fibres 
+    from common_4ch.custom_commands import correct_fibres 
     if debug : 
         logger.debug(f"Correcting fibres in {mesh_path}")
 
