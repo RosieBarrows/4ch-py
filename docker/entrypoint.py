@@ -1,35 +1,14 @@
 import os
 import argparse
 import logging
+import pathlib
 
 from common_4ch.json_utils import *
 from common_4ch.meshtools_utils import *
 
-FORMAT = '[%(funcName)s:%(levelname)s] %(message)s'
-logger = logging.getLogger()
-handler = logging.StreamHandler()
-formatter = logging.Formatter(FORMAT)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+from common_4ch.custom_commands import my_cp, my_mkdir
 
-def my_cp(src, dst, debug=False) : 
-    if debug :
-        logger.debug(f"cp {src} {dst}")
-    os.system(f"cp {src} {dst}")
-
-def my_mkdir(folder_path, create=True, debug=False) :
-    if debug :
-        logger.debug(f"mkdir -p {folder_path}") 
-    res = False
-    if os.path.exists(folder_path) : 
-        res = True
-    elif create : 
-        os.makedirs(folder_path)
-        res = True
-    return res
-
-def _surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myocardium", debug, help=False): 
+def _surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myocardium", debug=False, help=False): 
     """
     Mode of operation: surfs
     Extract surfaces from the mesh using meshtool
@@ -47,79 +26,13 @@ def _surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myocardium",
         print(_surfs.__doc__)
         return
 
-    mesh=f"{base_dir}/meshing/myocardium_OUT/{meshname}"
-    surf_folder=f"{base_dir}/surfaces_uvc/"
-    surf_folder_la=f"{base_dir}/surfaces_uvc_LA/"
-    surf_folder_ra=f"{base_dir}/surfaces_uvc_RA/" 
+    if debug :  logging.debug(f"Importing extract_surfs function")
+    from common_4ch.custom_commands import extract_surfs
+
+    extract_surfs(base_dir, input_tags_setup, apex_septum_setup, meshname, debug=False)
+
+
     
-    my_mkdir(surf_folder, debug)
-    my_mkdir(f"{surf_folder}/tmp", debug)
-    my_mkdir(f"{surf_folder}/BiV", debug)
-    my_mkdir(surf_folder_la, debug)
-    my_mkdir(f"{surf_folder_la}/tmp", debug)
-    my_mkdir(f"{surf_folder_la}/la", debug)
-    my_mkdir(surf_folder_ra, debug)
-    my_mkdir(f"{surf_folder_ra}/tmp", debug)
-    my_mkdir(f"{surf_folder_ra}/ra", debug)
-
-    logger.info("Extracting the base")
-    meshtool_extract_base(mesh, surf_folder, input_tags_setup)
-
-    logger.info("Extracting epi, LV endo and RV endo")
-    meshtool_extract_surfaces_lv_rv_epi(mesh, surf_folder, input_tags_setup)
-
-    logger.info("Extracting septum")
-    meshtool_extract_septum(mesh, surf_folder, input_tags_setup)
-
-    logger.info("Mapping surfaces")
-    mapping_surfaces(mesh, surf_folder, input_tags_setup)
-
-    logger.info("Removing the septum")
-    remove_sept(mesh, surf_folder)
-
-    logger.info("Preparing vtx files for UVCs")
-    prepare_vtx_for_uvc(surf_folder)
-
-    # extract surfacs for LA
-    logger.info("Extracting the LA base")
-    meshtool_extract_la_base(mesh, surf_folder_la, input_tags_setup)
-
-    logger.info("Extracting the LA epi and LA endo")
-    meshtool_extract_la_surfaces(mesh, surf_folder_la, input_tags_setup)
-
-    logger.info("Mapping LA surfaces")
-    mapping_surfaces_la(mesh, surf_folder_la, input_tags_setup)
-
-    # extract surfaces for RA
-    logger.info("Extracting the RA base")
-    meshtool_extract_ra_base(mesh,surf_folder_ra,input_tags_setup)
-    
-    logger.info("Extracting the RA epi and RA endo")
-    meshtool_extract_ra_surfaces(mesh,surf_folder_ra,input_tags_setup)
-    
-    logger.info("Mapping surfaces RA")
-    mapping_surfaces_ra(mesh,surf_folder_ra,input_tags_setup)
-    
-    # Extracting the BiV mesh
-    logger.info("Extracting the biventricular mesh ")
-    meshtool_extract_biv(mesh,surf_folder,input_tags_setup)
-
-    logger.info("Mapping vtx files from four-chamber mesh to BiV mesh ")
-    meshtool_map_vtx(surf_folder)
-
-    logger.info("Renaming files ")
-    renaming_myo_files(surf_folder)
-
-    # Extracting the LA mesh 
-    logger.info("Extracting the left atrial mesh")
-    meshtool_extract_la_for_UVCs(mesh,surf_folder_la,input_tags_setup)
-
-    logger.info("Mapping vtx files from four-chamber mesh to left atrial mesh ")
-    meshtool_map_vtx_la(surf_folder_la)
-
-    logger.info("Copying blank files for LA apex and septum ")
-    my_cp(f"{apex_septum_setup}/la.lvapex.vtx", f"{surf_folder_la}/la/la.lvapex.vtx", debug) 
-    my_cp(f"{apex_septum_setup}/la.rvsept_pt.vtx",  f"{surf_folder_la}/la/la.rvsept_pt.vtx", debug)
 
 def _correct_fibres(base_dir, mesh_path, debug, help=False) :
     """
@@ -137,16 +50,25 @@ def _correct_fibres(base_dir, mesh_path, debug, help=False) :
         print(_correct_fibres.__doc__)
         return
     
+    if debug :  logging.debug(f"Importing correct_fibres function")
     from common_4ch.custom_commands import correct_fibres 
-    if debug : 
-        logger.debug(f"Correcting fibres in {mesh_path}")
 
     correct_fibres(f"{base_dir}/{mesh_path}/BiV") 
+
+def _surf2vol(meshname, meshname_uac, endo_fibres, epi_fibres, endo_epi_laplace, output, debug, help=False) :
+    """
+    Mode of operation: surf2vol
+    Convert surfaces to volume, including fibres orientations using an endo-to-epi laplace field
+
+    Parameters:
+    
+
+    """
 
 
 def main(args):
 
-    logger.info("Starting 4ch docker container...")
+    logging.info("Starting 4ch docker container...")
 
     mode=args.operation
     myhelp=args.help
@@ -165,6 +87,17 @@ def main(args):
     elif mode == "correctfibres": 
         mesh_path=args.mesh_path
         _correct_fibres(base_dir, mesh_path, debug, help=myhelp)
+
+    elif mode == "surf2vol":
+        lon_file = args.sv2_fibres
+        lon_file += ".lon" if not lon_file.endswith(".lon") else ""
+        lon_location = lon_file[0:lon_file.find(".lon")]
+        atrium = args.s2v_atrium
+        layer = args.s2v_layer
+
+        meshname = f"{base_dir}/{args.mesh_path}/{atrium}/{args.meshname}" # meshname = la 
+        meshname_uac = f"{base_dir}/{args.mesh_path}/{atrium.upper()}_endo/{lon_location}" 
+        endo_fibres = f"{base_dir}/{args.mesh_path}/{atrium.upper()}_endo/{lon_location}"
         
 
 
@@ -172,13 +105,13 @@ def main(args):
 if __name__ == '__main__':
     input_parser = argparse.ArgumentParser(prog="docker run --rm --volume=/path/to/data:/data cemrg/uac:TAG",
                                            description="4ch docker container entrypoint",
-                                           usage="%(prog)s [surfs|correctfibres|scalarmap|latfield|stim|labels|vis|getparfile] [options]",
+                                           usage="%(prog)s [surfs|correctfibres|surf2vol|latfield|stim|labels|vis|getparfile] [options]",
                                            epilog="$ docker run cemrg/4ch:TAG MODE help \n# for specific help about the operation mode")
     input_parser.add_argument("operation",
                               metavar="mode_of_operation",
-                              choices=["surfs", "correctfibres", "scalarmap", "latfield",
+                              choices=["surfs", "correctfibres", "surf2vol", "latfield",
                                        "labels", "stim", "vis", "getparfile"],
-                              type=str, help="Modes of operation [surfs|correctfibres|scalarmap|latfield|stim|labels|vis|getparfile]")
+                              type=str, help="Modes of operation [surfs|correctfibres|surf2vol|latfield|stim|labels|vis|getparfile]")
 
     input_parser.add_argument("help", nargs='?', type=bool, default=False, help="Help page specific to each mode")
 
@@ -188,10 +121,9 @@ if __name__ == '__main__':
     input_parser.add_argument("--meshname", metavar="meshName", nargs='?', type=str, default="myocardium")
     input_parser.add_argument("--fch-path", metavar="fchPath", nargs='?', type=str)
 
-    input_parser.add_argument("--vfib-a-endo", metavar="VFIBRES_alpha_endo", nargs='?', type=float, default=60)
-    input_parser.add_argument("--vfib-a-epi", metavar="VFIBRES_alpha_epi", nargs='?', type=float, default=-60)
-    input_parser.add_argument("--vfib-b-endo", metavar="VFIBRES_beta_endo", nargs='?', type=float, default=-65)
-    input_parser.add_argument("--vfib-b-epi", metavar="VFIBRES_beta_epi", nargs='?', type=float, default=25)
+    input_parser.add_argument("--s2v-atrium", metavar="atrium", choices=['la', 'ra'], nargs='?', type=str)
+    input_parser.add_argument("--s2v-layer", metavar="Layer", choices=['endo', 'epi'],  nargs='?', type=str)
+    input_parser.add_argument("--s2v-fibres", metavar="fibre_file.lon", nargs='?', type=str, help="lon file with fibres")
 
     input_parser.add_argument("--output-dir", metavar="OutputName", nargs='?', type=str, default="")
     input_parser.add_argument("--debug", action='store_true', help="Only show command to run")
