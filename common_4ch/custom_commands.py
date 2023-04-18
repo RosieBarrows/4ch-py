@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from common_4ch.json_utils import *
 from common_4ch.meshtools_utils import *
+import common_4ch.file_utils as fu
 
 FORMAT = '[%(funcName)s:%(levelname)s] %(message)s'
 logger = logging.getLogger()
@@ -32,6 +33,18 @@ def my_mkdir(folder_path, create=True, debug=False):
         os.makedirs(folder_path)
         res = True
     return res
+
+def my_rm(file_path, debug=False):
+    import glob 
+    if debug:
+        logger.debug(f"rm {file_path}")
+
+    flie_list = glob.glob(file_path)
+    for f in flie_list:
+        try :
+            os.remove(f)
+        except OSError:
+            logger.error(f"Error while deleting file {f}")
 
 def correct_fibres(meshname):
     """Corrects fibre orientation in the mesh"""
@@ -138,6 +151,21 @@ def extract_surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myoca
     my_cp(f"{apex_septum_setup}/la.lvapex.vtx",f"{surf_folder_la}/la/la.lvapex.vtx", debug)
     my_cp(f"{apex_septum_setup}/la.rvsept_pt.vtx", f"{surf_folder_la}/la/la.rvsept_pt.vtx", debug)
 
+def laplace_preparation(endo_surf_path, epi_surf_path, debug) : 
+    """Prepares the mesh for the Laplace equation (outside of docker container)""" 
+    logger.info("Converting surfaces to vtx files")
+
+    def to_vtx(surf_path, debug) :
+        if debug : logger.debug(f"Converting {surf_path} to vtx")
+        surf = read_elem(surf_path, el_type='Tr', tags=False)
+        vtx = surf2vtx(surf)
+
+        logger.info(f"Writing {surf_path}.vtx")
+        fu.write_vtx(f"{surf_path}.vtx", vtx, init_row=2) 
+    
+    to_vtx(endo_surf_path, debug)
+    to_vtx(epi_surf_path, debug)
+
 def surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi_fibres_path, endo_epi_laplace, output, debug) :
     """Converts the surface mesh to a volume mesh using the UAC library"""
     meshname_3d = mesh_path_no_ext
@@ -183,4 +211,134 @@ def surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi
     my_cp(f"{meshname_3d}.pts", f"{output}.pts", debug)
 
     cmd = f"meshtool convert -imsh={output}_sheet -omsh={output}_sheet.vtk"
-    os.system(cmd, debug)
+    if debug: logger.info(f"COMMAND: {cmd}")
+    os.system(cmd)
+
+def create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags, bb_settings, debug) : 
+    """Defines the tags for the mesh"""
+    # presim_folder=f"{directory}/pre_simulation"
+    my_mkdir(presim_folder, debug)
+
+    input_tags_json = load_json(input_tags)
+    bb_settings_json = load_json(bb_settings)
+
+    msh="myocardium"
+
+    logger.info("Setting up folder structure")
+    my_cp(f"{mesh_path_no_ext}.elem", f"{presim_folder}/{msh}.elem", debug)
+    my_cp(f"{mesh_path_no_ext}.pts", f"{presim_folder}/{msh}.pts", debug)
+    my_cp(f"{mesh_path_no_ext}.lon", f"{presim_folder}/{msh}.lon", debug)
+
+    msh_av = f"{msh}_av"
+    msh_fec = f"{msh}_av_fec"
+    msh_bb = f"{msh}_av_fec_bb"
+
+    logger.info("Defining the AV separating plane")
+    define_AV_separation(f"{presim_folder}/{msh}.elem", input_tags_json, input_tags_json["AV_plane"], f"{presim_folder}/{msh_av}.elem")
+
+    logger.info("Defining the FEC layer")
+    biv_mesh = f"{biv_folder}/BiV"
+    zbiv_file = f"{biv_folder}/uvc/BiV.uvc_z.dat" 
+    rhobiv_file = f"{biv_folder}/uvc/BiV.uvc_rho.dat"
+
+    define_FEC(f"{presim_folder}/{msh_av}.elem", 
+               biv_mesh, zbiv_file, rhobiv_file, 
+               f"{presim_folder}/{msh_fec}.elem", 
+               input_tags_json["FEC"], 
+               include_septum=f"{biv_folder}/BiV.rvsept.surf", 
+               FEC_height=bb_settings_json["FEC_height"])
+    
+    logger.info("Defining the BB area")
+    la_mesh=f"{la_folder}/la"
+    ra_mesh=f"{ra_folder}/ra"
+    zla_file=f"{la_folder}/uvc/la.uvc_z.dat"
+    zra_file=f"{ra_folder}/uvc/ra.uvc_z.dat"
+    phila_file=f"{la_folder}/uvc/la.uvc_phi.dat"
+    phira_file=f"{ra_folder}/uvc/ra.uvc_phi.dat"
+
+    define_BB(f"{presim_folder}/{msh_fec}.elem", 
+                la_mesh, ra_mesh, 
+                zla_file, zra_file, phila_file, phira_file,
+                bb_settings_json, 
+                input_tags_json, 
+                f"{presim_folder}/{msh_bb}.elem")
+    
+    my_cp(f"{presim_folder}/{msh}.pts", f"{presim_folder}/{msh_bb}.pts", debug)
+    my_cp(f"{presim_folder}/{msh}.lon", f"{presim_folder}/{msh_bb}.lon", debug)
+
+    cmd = f"meshtool convert -imsh={presim_folder}/{msh_bb} -omsh={presim_folder}/{msh_bb}.vtk"
+    if debug: logger.info(f"COMMAND: {cmd}")
+    os.system(cmd)
+
+def surf_presim(directory, la_folder, ra_folder, input_tags_settings, map_settings, fch_apex, fch_sa, code_d, debug) :
+    """Surfaces for pre-simulation"""
+    input_tags_json = load_json(input_tags_settings)
+    presim_folder=f"{directory}/pre_simulation"
+    msh = "myocardium_AV_FEC_BB"
+
+    msh_path = f"{presim_folder}/{msh}"
+
+    logger.info("Extracting the surface for the pericardium boundary condition")
+    meshtool_extract_peri(msh_path, presim_folder, input_tags_json)
+    connected_component_to_surface(f"{presim_folder}/peri_surface_CC.part1", f"{presim_folder}/peri_surface.surf", f"{presim_folder}/epicardium_for_sim")
+    surf2vtk(msh_path, f"{presim_folder}/epicardium_for_sim.surf", f"{presim_folder}/epicardium_for_sim.vtk") 
+
+    my_rm(f"{presim_folder}/*CC*", debug)
+
+    logger.info("Extracting the epi and LV/RV/LA/RA endo surfaces")
+    my_mkdir(f"{presim_folder}/surfaces_simulation", debug) 
+    meshtool_extract_epi_endo_surfs(msh_path,presim_folder,input_tags_json)
+
+    my_rm(f"{presim_folder}/surfaces_simulation/surface_heart_CC.*", debug)
+
+    logger.info("Extracting the surfaces of the rings")
+    my_mkdir(f"{presim_folder}/surfaces_simulation/surfaces_rings", debug) 
+    meshtool_extract_rings(msh_path, presim_folder, input_tags_json)
+
+    logger.info("Setting up the pericardium scale...")
+    set_pericardium(msh_path, presim_folder, directory)
+
+    logger.info("Setting up the pericarsium for the atria ...")
+    la_mesh=f"{la_folder}/la"
+    uvcs=f"{la_mesh}/uvc/" 
+
+    cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {la_mesh} --uvcs {uvcs} --chamber la --map_settings {map_settings}"
+    if debug: logger.info(f"COMMAND: {cmd}")
+    os.system(cmd)
+
+    ra_mesh=f"{ra_folder}/ra"
+    uvcs=f"{ra_mesh}/uvc/"
+
+    cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {ra_mesh} --uvcs {uvcs} --chamber ra --map_settings {map_settings}"
+    if debug: logger.info(f"COMMAND: {cmd}")
+    os.system(cmd)
+
+    logger.info("Combining the pericardium scaling maps for the ventricles and atria")
+    combine_elem_dats(directory, presim_folder)
+
+    logger.info("Setting up a folder with the simulation-ready mesh") 
+    setup_sim(directory, presim_folder, fch_apex, fch_sa)
+
+def split_fec(directory, input_tags_setup, lvrv_tags, mesh_path_no_ext, debug=False) : 
+    """
+    Split the fast endocardial conduction zone (FEC))
+    This allows material/fibre properties to be assigned to the LV and RV independently
+    """
+    original_tags_json = load_json(input_tags_setup)
+    new_tags_json = load_json(lvrv_tags)
+
+    sim_dir = f"{directory}/sims_folder"
+    mshname = "myocardium_AV_FEC_BB"
+    separate_FEC_lvrv(mesh_path_no_ext, f"{sim_dir}/{mshname}.elem", 
+                      f"{sim_dir}/LV_endo.surf", f"{sim_dir}/RV_endo.surf",
+                      f"{sim_dir}/{mshname}_lvrv.elem", original_tags_json, new_tags_json)
+    
+    my_cp(f"{sim_dir}/{mshname}.pts", f"{sim_dir}/{mshname}_lvrv.pts", debug)
+    my_cp(f"{sim_dir}/{mshname}.lon", f"{sim_dir}/{mshname}_lvrv.lon", debug)
+
+    cmd = f"meshtool convert -imsh={sim_dir}/{mshname}_lvrv -omsh={sim_dir}/{mshname}_lvrv.vtk"
+    if debug: logger.info(f"COMMAND: {cmd}")
+    os.system(cmd)
+
+    
+
