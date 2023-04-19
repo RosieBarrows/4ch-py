@@ -1,2 +1,4 @@
 **/.DS_Store
 .vscode/
+**/__pycache__/**
+common_4ch/__pycache__/** 

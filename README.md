@@ -8,6 +8,7 @@ Set up a conda environment with the packages listed in README_conda_setup.md
 
 ## Quick start 
 Set up your anaconda environment with `conda create -n 4ch python=3.9 -y`.
+Then activate your environment with `conda activate 4ch`. 
 Then install the requirements using `pip`: 
 ```sh
 pip install -r requirements.txt

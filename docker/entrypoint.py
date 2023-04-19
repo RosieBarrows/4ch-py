@@ -28,7 +28,7 @@ def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="myocardium"
 
     extract_surfs(directory, input_tags_setup, apex_septum_setup, meshname, debug=False)
 
-def _correct_fibres(directory, mesh_path, debug, help=False) :
+def _correct_fibres(directory, mesh_path, debug=False, help=False) :
     """
     Mode of operation: correctfibres
     Correct the fibres
@@ -49,7 +49,7 @@ def _correct_fibres(directory, mesh_path, debug, help=False) :
 
     correct_fibres(f"{directory}/{mesh_path}/BiV") 
 
-def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug, help=False) :
+def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False, help=False) :
     """
     Mode of operation: surf2vol
     Convert surfaces to volume, including fibres orientations using an endo-to-epi laplace field.
@@ -88,7 +88,7 @@ def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug, help
 
     surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi_fibres_path, endo_epi_laplace, outmeshname, debug)
 
-def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug, help=False) :
+def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=False) :
     """
     Mode of operation: laplace_prep 
     Prepare the laplace field for the endo-to-epi fibres orientation
@@ -121,7 +121,7 @@ def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug, help
 
     laplace_preparation(endo_surf_path, epi_surf_path, debug)
 
-def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_settings, debug, help=False) :
+def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_settings, debug=False, help=False) :
     """
     Mode of operation: tags
     Create the tags 
@@ -158,7 +158,7 @@ def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_
 
     create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags_setup, input_bb_settings, debug)
 
-def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug, help=False) :
+def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug=False, help=False) :
     """
     Mode of operation: surfs_presim
     Create the surfaces for the pre-simulation
@@ -190,7 +190,7 @@ def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex
 
     surf_presim(directory, la_folder, ra_folder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d, debug)
 
-def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug, help=False) :
+def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug=False, help=False) :
     """
     Mode of operation: fec
     Split the fast endocardial conduction zone (FEC))
@@ -227,7 +227,7 @@ def main(args):
     myhelp=args.help
     output=args.output
     debug=args.debug
-    base_dir=args.dev_base_dir
+    base_dir=args.dev_base_dir # default=/data
     codes_d=args.dev_code_dir
     local=args.dev_run_local
 
@@ -237,11 +237,11 @@ def main(args):
         input_tags=f"{par_folder}/{input_tags_file}"
         apex_septum=f"{par_folder}/{args.apex_septum_setup}"
         meshname=args.meshname
-        _surfs(base_dir, input_tags, apex_septum, meshname, debug, help=myhelp)
+        _surfs(base_dir, input_tags, apex_septum, meshname, debug=False, help=myhelp)
     
     elif mode == "correctfibres": 
         mesh_path=args.mesh_path
-        _correct_fibres(base_dir, mesh_path, debug, help=myhelp)
+        _correct_fibres(base_dir, mesh_path, debug=False, help=myhelp)
 
     elif mode == "surf2vol":
         
@@ -250,12 +250,17 @@ def main(args):
         fibres_endo=args.file_endo
         fibres_epi=args.file_epi
 
-        if fibres_endo.endswith('.lon'):
-            fibres_endo = fibres_endo[:-4]
-        if fibres_epi.endswith('.lon'):
-            fibres_epi = fibres_epi[:-4]
+        arg_list = [atrium, mesh_path, fibres_endo, fibres_epi]
+        if None in arg_list:
+            logging.error("Please provide the endo and epi fibre files")
+            myhelp = True 
+        else :
+            if fibres_endo.endswith('.lon'):
+                fibres_endo = fibres_endo[:-4]
+            if fibres_epi.endswith('.lon'):
+                fibres_epi = fibres_epi[:-4]
 
-        _surf2vol(base_dir, atrium, fibres_endo, fibres_epi, mesh_path, debug, help=myhelp)
+        _surf2vol(base_dir, atrium, fibres_endo, fibres_epi, mesh_path, debug=False, help=myhelp)
     
     elif mode == "laplace_prep":
 
@@ -264,10 +269,15 @@ def main(args):
         surf_endo=args.file_endo
         surf_epi=args.file_epi
 
-        if not surf_endo.endswith('.surf'): surf_endo += '.surf'
-        if not surf_epi.endswith('.surf'): surf_epi += '.surf'
+        arg_list = [atrium, mesh_path, surf_endo, surf_epi]
+        if None in arg_list:
+            logging.error("Please provide the endo and epi surface files")
+            myhelp = True
+        else :
+            if not surf_endo.endswith('.surf'): surf_endo += '.surf'
+            if not surf_epi.endswith('.surf'): surf_epi += '.surf'
 
-        _laplace_prep(base_dir, atrium, surf_endo, surf_epi, mesh_path, debug, help=myhelp)
+        _laplace_prep(base_dir, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=myhelp)
     
     elif mode == "tags": 
         meshname=args.meshname # myocardium_fibres_l 
@@ -277,17 +287,17 @@ def main(args):
         input_tags=f"{par_folder}/{args.input_tags_setup}"
         input_bb_settings=f"{par_folder}/{args.input_bb_settings}"
 
-        _tags(base_dir, biv_subfolder, mesh_path, meshname, input_tags, input_bb_settings, debug, help=myhelp)
+        _tags(base_dir, biv_subfolder, mesh_path, meshname, input_tags, input_bb_settings, debug=False, help=myhelp)
     
     elif mode == "presim": 
-        #_surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug, help=False) 
+        #_surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug=False, help=False)
         subfolder = args.data_subdir
         input_tags_setup = f"{args.par_folder}/{args.input_tags_setup}"
         map_settings = f"{args.par_folder}/{args.map_settings}"
         fch_apex = f"{args.par_folder}/{args.fch_apex}"
         fch_sa = f"{args.par_folder}/{args.fch_sa}"
 
-        _surfs_presim(base_dir, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, codes_d, debug, help=myhelp)
+        _surfs_presim(base_dir, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, codes_d, debug=False, help=myhelp)
 
     elif mode == "fec":
         subfolder = args.mesh_path
@@ -295,7 +305,7 @@ def main(args):
         input_tags_setup = f"{args.par_folder}/{args.input_tags_setup}"
         lvrv_tags = f"{args.par_folder}/{args.lvrv_tags}"
 
-        _fec(base_dir, subfolder, meshname, input_tags_setup, lvrv_tags, debug, help=myhelp)
+        _fec(base_dir, subfolder, meshname, input_tags_setup, lvrv_tags, debug=False, help=myhelp)
 
 
 
@@ -335,7 +345,7 @@ if __name__ == '__main__':
     input_parser.add_argument("--debug", action='store_true', help="Only show command to run")
     input_parser.add_argument("--dev-base-dir", "-bdir", metavar="dev", nargs='?', default='/data', type=str, help="(only DEVs) Data path")
     input_parser.add_argument("--dev-code-dir", "-code",  metavar="dev", nargs='?', default='/code', type=str, help="(only DEVs) Code path")
-    input_parser.add_argument("--dev-run-local", "-local", metavar="dev", action='store_true', help="(only DEVs) Run locally toggle")
+    input_parser.add_argument("--dev-run-local", "-local", action='store_true', help="(only DEVs) Run locally toggle")
 
     args = input_parser.parse_args()
     

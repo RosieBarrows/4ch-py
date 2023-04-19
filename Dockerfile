@@ -14,6 +14,8 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV && \
     /opt/venv/bin/python3 -m pip install --upgrade pip && \
     mkdir -p /code && mkdir -p /data
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PYTHONPATH="${PYTHONPATH}:/code"
 
 COPY ./requirements.txt /requirements.txt
 RUN /opt/venv/bin/python3 -m pip install -r /requirements.txt 
