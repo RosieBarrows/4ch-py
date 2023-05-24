@@ -8,6 +8,7 @@ Set up a conda environment with the packages listed in README_conda_setup.md
 
 Deactivate your base environment and activate your conda environment. 
 
+In 0_extract_surfs.sh, the path to the heartFolder is provided. Check that this is the correct path and that the text within this file provides the name of your heart folder. 
 
 *You should already have a heart folder (i.e. example_mesh) with the following structure:*
 
@@ -51,6 +52,8 @@ Within the ./parfiles/etags/ folder:
 
 **MAKE SURE YOU HAVE A VALID CARP LICENSE (used for mguvc command)**
 **NOTE - YOUR VERSION OF CARP MUST BE THE VERSION THAT INCLUDES A --CUSTOM-APEX FLAG FOR THE UVCS**
+
+In 1_calculate_UVCs.sh, the path to the heartFolder is provided. Check that this is the correct path and that the text within this file provides the name of your heart folder. 
 
 Run:  
    `bash 1_calculate_UVCs.sh`
