@@ -32,7 +32,12 @@ Run:
 
 Use the la.vtk (in surfaces_uvc_LA/la/) to select a point for the LA apex and a point for the LA septum. Save the Point IDs in la.lvapex.vtx and la.rvspet_pt.vtx, respectively (blank files provided in surfaces_uvc_LA/la/).
 
+<img width="453" alt="image" src="https://github.com/RosieBarrows/4ch-py/assets/95747883/4dd14969-9554-4d37-bd0c-d08b1798d96b">
+
 Repeat this step for the RA using ra.vtk.
+
+<img width="569" alt="image" src="https://github.com/RosieBarrows/4ch-py/assets/95747883/6011ae04-6bb2-43bf-9d9c-76f1f4b8e787">
+
 
 Finally, select the apex of the RAA (right atrial appendage) and save the 3 coordinates of this point (with spaces in between each coordinate) in ${heart_folder}/raa_apex.vtx
 
