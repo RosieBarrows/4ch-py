@@ -51,7 +51,7 @@ Within the ./parfiles/etags/ folder:
 3. Open the etags_ra.sh file. Change the value of T_LV to be the !! RA !! label in your mesh.
 
 **MAKE SURE YOU HAVE A VALID CARP LICENSE (used for mguvc command)**
-**NOTE - YOUR VERSION OF CARP MUST BE THE VERSION THAT INCLUDES A --CUSTOM-APEX FLAG FOR THE UVCS**
+**NOTE - YOUR VERSION OF CARP MUST BE THE VERSION THAT INCLUDES A --CUSTOM-APEX FLAG FOR THE UVCS (i.e. Nov 2022 or later)**
 
 In 1_calculate_UVCs.sh, the path to the heartFolder is provided. Check that this is the correct path and that the text within this file provides the name of your heart folder. 
 
