@@ -2,7 +2,7 @@
 
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
+INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
 input_tags="./parfiles/tags_vent_fibres.json"
 apex_septum="./parfiles/apex_septum_templates/"
 
