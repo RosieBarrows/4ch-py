@@ -1065,10 +1065,10 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 
 		rvsept_CC_old = copy.deepcopy(rvsept_CC)
 		sorted_size = np.argsort(CC_size)
-		rv_sept_CC[0] = rvsept_CC_old[sorted_size[-1]]
-		rv_sept_CC[1] = rvsept_CC_old[sorted_size[-2]]
+		rvsept_CC[0] = rvsept_CC_old[sorted_size[-1]]
+		rvsept_CC[1] = rvsept_CC_old[sorted_size[-2]]
 
-		for i in range(len(epi_endo_CC)-2):
+		for i in range(len(rvsept_CC)-2):
 			os.system("rm "+surf_folder+"/tmp/"+rvsept_CC_old[sorted_size[i]]+".*")
 
 	print('Renaming connected components...')
