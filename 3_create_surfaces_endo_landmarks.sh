@@ -1,9 +1,10 @@
 #!/bin/bash
 
-INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
+INPUT_heartFolder=$(cat /data/Dropbox/4ch/parfiles/heartFolder.txt)
 
 scripts_path="/data/Dropbox/4ch-py"
 heart_name=${INPUT_heartFolder}
+echo ${heart_name}
 
 cmd="mkdir ${heart_name}/atrial_fibres"
 eval $cmd
