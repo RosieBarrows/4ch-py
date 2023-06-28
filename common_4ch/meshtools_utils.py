@@ -1057,19 +1057,20 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 		i += 1
 
 	print("Checking connected component size and keeping only the 2 biggest...")
+	CC_size = np.zeros((len(rvsept_CC),),dtype=int)
+	for i,CC in enumerate(rvsept_CC):
+		surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
+		CC_size[i] = surf.shape[0]
+	
+	rvsept_CC_old = copy.deepcopy(rvsept_CC)
+	sorted_size = np.argsort(CC_size)
+	rvsept_CC[0] = rvsept_CC_old[sorted_size[-1]]
+	rvsept_CC[1] = rvsept_CC_old[sorted_size[-2]]
+
 	if len(rvsept_CC)>2:
-		CC_size = np.zeros((len(rvsept_CC),),dtype=int)
-		for i,CC in enumerate(rvsept_CC):
-			surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
-
-		rvsept_CC_old = copy.deepcopy(rvsept_CC)
-		sorted_size = np.argsort(CC_size)
-		rvsept_CC[0] = rvsept_CC_old[sorted_size[-1]]
-		rvsept_CC[1] = rvsept_CC_old[sorted_size[-2]]
-
 		for i in range(len(rvsept_CC)-2):
-			os.system("rm "+surf_folder+"/tmp/"+rvsept_CC_old[sorted_size[i]]+".*")
+			pass
+			# os.system("rm "+surf_folder+"/tmp/"+rvsept_CC_old[sorted_size[i]]+".*")
 
 	print('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
