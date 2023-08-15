@@ -1,18 +1,18 @@
 #!/bin/bash
 
-heart_folder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
+heart_folder=$(cat /home/croderog/Desktop/IC_projects/barrows_preprocessing/parfiles/heartFolder.txt)
 FCH="${heart_folder}/surfaces_uvc/myocardium_bayer_60_-60"
 UACFOLDER="${heart_folder}/atrial_fibres/UAC/"
 
 # ---------------------------------------------------------------------------------
 
-CMD="python main_laplace.py --meshname ${UACFOLDER}/la/la 
+CMD="python3 main_laplace.py --meshname ${UACFOLDER}/la/la 
 							--endo ${UACFOLDER}/la/la_endo.surf
 							--epi ${UACFOLDER}/la/la_epi.surf
 							--outdir ${UACFOLDER}/la/endo_epi/"
 eval $CMD
 
-CMD="python main_laplace.py --meshname ${UACFOLDER}/ra/ra 
+CMD="python3 main_laplace.py --meshname ${UACFOLDER}/ra/ra 
 							--endo ${UACFOLDER}/ra/ra_endo.surf
 							--epi ${UACFOLDER}/ra/ra_epi.surf
 							--outdir ${UACFOLDER}/ra/endo_epi/"
@@ -20,7 +20,7 @@ eval $CMD
 
 # ---------------------------------------------------------------------------------
 
-CMD="python main_surf_to_volume.py --meshname ${UACFOLDER}/la/la
+CMD="python3 main_surf_to_volume.py --meshname ${UACFOLDER}/la/la
 								   --meshname_uac ${UACFOLDER}/LA_endo/Fibre_endo_l
 								   --endo_fibres ${UACFOLDER}/LA_endo/Fibre_endo_l.lon
 								   --epi_fibres ${UACFOLDER}/LA_endo/Fibre_epi_l.lon
@@ -30,7 +30,7 @@ eval $CMD
 
 # ---------------------------------------------------------------------------------
 
-CMD="python main_surf_to_volume.py --meshname ${UACFOLDER}/ra/ra
+CMD="python3 main_surf_to_volume.py --meshname ${UACFOLDER}/ra/ra
 								   --meshname_uac ${UACFOLDER}/RA_endo/Fibre_endo_l
 								   --endo_fibres ${UACFOLDER}/RA_endo/Fibre_endo_l.lon
 								   --epi_fibres ${UACFOLDER}/RA_endo/Fibre_epi_l.lon
