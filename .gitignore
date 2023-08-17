@@ -1,4 +1,5 @@
-/parfiles/
+parfiles/
 venv_barrows_preprocessing
 *pyc
 *txt
+*/*cach*
