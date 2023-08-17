@@ -35,16 +35,16 @@ def main(args):
 
 
 	separate_FEC_lvrv(original_mesh+".elem",
-                           heartFolder+'/sims_folder/myocardium_AV_FEC_BB.elem',
+                           heartFolder+'/pre_simulation/myocardium_AV_FEC_BB.elem',
                            heartFolder+'/sims_folder/LV_endo.surf',
                            heartFolder+'/sims_folder/RV_endo.surf',
-                           heartFolder+'/sims_folder/myocardium_AV_FEC_BB_lvrv.elem',
+                           heartFolder+'/pre_simulation/myocardium_AV_FEC_BB_lvrv.elem',
                            original_tags,
                            new_tags)                                                                       
 
-	os.system("cp "+heartFolder+"/sims_folder/myocardium_AV_FEC_BB.lon "+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv.lon")
-	os.system("cp "+heartFolder+"/sims_folder/myocardium_AV_FEC_BB.pts "+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv.pts")
-	os.system("meshtool convert -imsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -omsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -ofmt=vtk_bin")
+	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.lon "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.lon")
+	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.pts "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.pts")
+	os.system("meshtool convert -imsh="+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv -omsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -ofmt=carp_bin")
 
 
 
