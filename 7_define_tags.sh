@@ -2,7 +2,7 @@
 
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/pre_sim/parfiles/heartFolder.txt)
+INPUT_heartFolder=$(cat /home/croderog/Desktop/IC_projects/barrows_preprocessing/parfiles/heartFolder.txt)
 mesh="${INPUT_heartFolder}/atrial_fibres/myocardium_fibres_l"
 BiV_folder="${INPUT_heartFolder}/surfaces_uvc/BiV"
 input_tags="./parfiles/tags_presim.json"
