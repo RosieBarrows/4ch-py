@@ -1619,7 +1619,8 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","SVC_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring"])
+											   "LSPV_ring","LIPV_ring",
+											   "BB"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
@@ -1636,7 +1637,8 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
+											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring",
+											   "BB"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
