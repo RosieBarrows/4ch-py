@@ -229,15 +229,13 @@ def read_vtx(filename,init_row=2):
 	return np.loadtxt(filename, dtype=int, skiprows=init_row)
 
 
-def setup_sim(heartFolder,presimFolder,fch_apex,fch_sa):
+def setup_sim(heartFolder,presimFolder,electrodes_paths_array):
 	os.system("mkdir "+heartFolder+"/sims_folder")
 
 	os.system("cp "+presimFolder+"/elem_dat_UVC_ek_combined.dat "+heartFolder+"/sims_folder/pericardium_scale.dat")
-	os.system("cp "+presimFolder+"/surfaces_simulation/epicardium.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/epicardium_for_sim.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/LA_endo.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/LV_endo.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/myocardium_AV_FEC_BB.* "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/RA_endo.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/RV_endo.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/RPVs.surf "+heartFolder+"/sims_folder")
@@ -245,5 +243,6 @@ def setup_sim(heartFolder,presimFolder,fch_apex,fch_sa):
 	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/SVC.surf "+heartFolder+"/sims_folder")
 	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/SVC.surf.vtx "+heartFolder+"/sims_folder")
 
-	os.system("cp "+fch_apex+" "+heartFolder+"/sims_folder")
-	os.system("cp "+fch_sa+" "+heartFolder+"/sims_folder")
+	for electrode in electrodes_paths_array:
+		os.system("cp "+electrode + " " +heartFolder+"/sims_folder")
+
