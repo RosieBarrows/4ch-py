@@ -4,7 +4,7 @@ import os
 import sys
 import numpy as np
 import copy
-from tqdm import tqdm
+# from tqdm import tqdm
 
 mshName=sys.argv[1]
 
@@ -24,7 +24,8 @@ print('Found '+str(to_correct.shape[0])+' elements to correct')
 lon_corrected = copy.deepcopy(lon)
 good_elements = np.setdiff1d(np.arange(elemC.shape[0]), to_correct, assume_unique=True)
 
-for idx in tqdm(to_correct, desc="Correcting fibre orientation..."):
+# for idx in tqdm(to_correct, desc="Correcting fibre orientation..."):
+for idx in to_correct:
 	d = np.linalg.norm(elemC[good_elements,:] - elemC[idx,:],axis=1)
 	closest = good_elements[np.where(d == np.min(d))[0]]
 	lon_corrected[idx,:] = lon[closest,:]
