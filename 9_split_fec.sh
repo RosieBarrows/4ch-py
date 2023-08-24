@@ -2,7 +2,7 @@
 
 clear
 
-INPUT_heartFolder=$(cat /home/croderog/Desktop/IC_projects/barrows_preprocessing/parfiles/heartFolder.txt)
+INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
 original_mesh="${INPUT_heartFolder}/meshing/myocardium_OUT/myocardium"
 input_tags="./parfiles/tags_presim.json"
 lvrv_tags="./parfiles/tags_lvrv.json"

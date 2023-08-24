@@ -1057,19 +1057,20 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 		i += 1
 
 	print("Checking connected component size and keeping only the 2 biggest...")
+	CC_size = np.zeros((len(rvsept_CC),),dtype=int)
+	for i,CC in enumerate(rvsept_CC):
+		surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
+		CC_size[i] = surf.shape[0]
+	
+	rvsept_CC_old = copy.deepcopy(rvsept_CC)
+	sorted_size = np.argsort(CC_size)
+	rvsept_CC[0] = rvsept_CC_old[sorted_size[-1]]
+	rvsept_CC[1] = rvsept_CC_old[sorted_size[-2]]
+
 	if len(rvsept_CC)>2:
-		CC_size = np.zeros((len(rvsept_CC),),dtype=int)
-		for i,CC in enumerate(rvsept_CC):
-			surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
-
-		rvsept_CC_old = copy.deepcopy(rvsept_CC)
-		sorted_size = np.argsort(CC_size)
-		rvsept_CC[0] = rvsept_CC_old[sorted_size[-1]]
-		rvsept_CC[1] = rvsept_CC_old[sorted_size[-2]]
-
-		# for i in range(len(epi_endo_CC)-2):
-		# 	os.system("rm "+surf_folder+"/tmp/"+rvsept_CC_old[sorted_size[i]]+".*")
+		for i in range(len(rvsept_CC)-2):
+			pass
+			# os.system("rm "+surf_folder+"/tmp/"+rvsept_CC_old[sorted_size[i]]+".*")
 
 	print('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
@@ -1403,7 +1404,7 @@ def meshtool_map_vtx_ra(surf_folder):
 
 def meshtool_extract_peri(mesh,presimFolder,input_tags):
 
-	tags_list_peri = extract_tags(input_tags,["LV","RV","LA","RA","BB","AV_plane"])
+	tags_list_peri = extract_tags(input_tags,["LV","RV","LA","RA","BB","AV"])
 	tags_list_peri = [str(t) for t in tags_list_peri]
 	tags_list_peri_string = ",".join(tags_list_peri)
 
@@ -1418,30 +1419,6 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=vtk -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
 	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
-
-	### The biggest surface will be the pericardium
-
-	tmp_files = os.listdir(presimFolder)
-	surf_heart_CC_size = []
-	isFile = True
-	i = 0
-
-	while isFile:
-		if "peri_surface_CC.part" + str(i) + ".nod" in tmp_files:
-			surf_heart_CC_size.append(os.path.getsize(os.path.join(presimFolder, "peri_surface_CC.part" + str(i) + ".nod")))
-			i+=1
-		else:
-			isFile = False
-
-	index_max = np.argmax(surf_heart_CC_size)
-
-	print("The epicardium is peri_surface_CC.part" + str(index_max))
-
-	os.system("cp " + os.path.join(presimFolder,"peri_surface_CC.part" + str(index_max) + ".nod") + " " + os.path.join(presimFolder,"peri_surface_CC_epicardium") + ".nod")
-	
-	os.system("cp " + os.path.join(presimFolder,"peri_surface_CC.part" + str(index_max) + ".eidx") + " " + os.path.join(presimFolder,"peri_surface_CC_epicardium") + ".eidx")
-
-
 
 def meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags):
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"surfaces_simulation/surface_heart -ofmt=carp_txt")
@@ -1619,8 +1596,7 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","SVC_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring",
-											   "BB"])
+											   "LSPV_ring","LIPV_ring"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
@@ -1637,8 +1613,7 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring",
-											   "BB"])
+											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
