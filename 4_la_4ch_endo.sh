@@ -7,7 +7,7 @@ set -euo pipefail
 #     exit 1
 # fi
 
-heart_folder=$(cat /data/Dropbox/scripts_cemrgapp/pipeline/vent_fibres/parfiles/heartFolder.txt)
+heart_folder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
 
 DATA="${heart_folder}/atrial_fibres/UAC"
 

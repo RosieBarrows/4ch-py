@@ -22,37 +22,41 @@ def main(args):
 	raFolder = args.raFolder
 	mesh = args.meshPath
 	map_settings = args.map_settings 
-	fch_apex = args.fch_apex
-	fch_sa = args.fch_sa
+	electrodes_names = args.electrodes_names
 
 	presimFolder = args.heartFolder+"/pre_simulation/"
 	meshName = "myocardium_AV_FEC_BB"
 	mesh = presimFolder+meshName
+        
+	electrodes_paths_array = [os.path.join(presimFolder, el) for el in electrodes_names.split(",")]
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the surface for the perciardium boundary condition
 	# ----------------------------------------------------------------------------------------------
 	meshtool_extract_peri(mesh,presimFolder,input_tags)
-	connected_component_to_surface(presimFolder+"/peri_surface_CC.part1",
+        
+	
+
+	connected_component_to_surface(presimFolder+"/peri_surface_CC_epicardium",
 								   presimFolder+"/peri_surface.surf",
 								   presimFolder+"/epicardium_for_sim")
 
 	surf2vtk(mesh,presimFolder+"/epicardium_for_sim"+".surf",presimFolder+"/epicardium_for_sim"+".vtk")
 
-	os.system("rm "+presimFolder+"/*CC*")
+	# os.system("rm "+presimFolder+"/*CC*")
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the epi and LV/RV/LA/RA endo surfaces
 	# ----------------------------------------------------------------------------------------------
-	os.system("mkdir "+presimFolder+"/surfaces_simulation")
+	os.system("mkdir -p "+presimFolder+"/surfaces_simulation")
 	meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags)
 
-	os.system("rm "+presimFolder+"/surfaces_simulation/surface_heart_CC.*")
+	# os.system("rm "+presimFolder+"/surfaces_simulation/surface_heart_CC.*")
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the surfaces of the rings
 	# ----------------------------------------------------------------------------------------------
-	os.system("mkdir "+presimFolder+"/surfaces_simulation/surfaces_rings")
+	os.system("mkdir -p "+presimFolder+"/surfaces_simulation/surfaces_rings")
 	meshtool_extract_rings(mesh,presimFolder,input_tags)
 
 	# ----------------------------------------------------------------------------------------------
@@ -85,7 +89,7 @@ def main(args):
 	# Setting up a folder with the simulation-ready mesh
 	# ----------------------------------------------------------------------------------------------
 	print("Setting up a folder with the simulation-ready mesh")
-	setup_sim(heartFolder,presimFolder,fch_apex,fch_sa)
+	setup_sim(heartFolder,presimFolder,electrodes_paths_array)
 
 
 if __name__ == '__main__':
@@ -113,12 +117,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--map_settings', type=str, default="./parfiles/atria_map_settings.json",
                         help='Provide json file with settings for the atrial pericardium map')
-
-    parser.add_argument('--fch_apex', type=str, default=None,
-    					help='Provide vtx file with ID of four chamber apex')
-
-    parser.add_argument('--fch_sa', type=str, default=None,
-    					help='Provide vtx file with ID of four chamber SA nodes')
+    
+    parser.add_argument('--electrodes_names', type=str, default=None,
+		     			help='Provide comma-separated string of the name of the electrodes. They should be in the pre_simulation folder.')
 
     args = parser.parse_args()
 
