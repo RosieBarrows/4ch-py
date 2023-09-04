@@ -8,9 +8,20 @@ from common_4ch.file_utils import *
 from common_4ch.distance_utils import *
 from common_4ch.mesh_utils import *
 
-def extract_tags(tags_setup,
-				 labels):
-	
+def mycp(src,dst):
+	os.system(f"cp {src} {dst}")
+
+def mymv(src,dst):
+	os.system(f"mv {src} {dst}")
+
+def big_msg(msg):
+	length = len(msg)
+	print("-"*length)
+	print(msg)
+	print("-"*length)
+
+def extract_tags(tags_setup ,
+				 labels):	
 	tags_list = []
 	for l in labels:
 		if type(tags_setup[l])==int:
@@ -22,6 +33,14 @@ def extract_tags(tags_setup,
 
 	return tags_list
 
+def get_tags_from_setup(tags_setup , labels):
+		""" Extract tags from setup dictionary """
+		tags_list = extract_tags(tags_setup,labels)
+		tags_list = [str(t) for t in tags_list]
+		tags_list_string = ",".join(tags_list)
+
+		return tags_list_string
+
 def meshtool_extract_biatrial(meshname,
 							  output_folder,
 							  tags_setup,
@@ -32,15 +51,10 @@ def meshtool_extract_biatrial(meshname,
 		do = False
 		print('Mesh already found. Not overwriting.')
 
-	if do:	
-		tags_list = extract_tags(tags_setup,["LA","RA"])
-		tags_list = [str(t) for t in tags_list]
-		tags_list_string = ",".join(tags_list)	
+	if do:
+		tags_list_string = get_tags_from_setup(tags_setup,["LA","RA"])
 
-		print("----------------------------")
-		print("Extracting biatrial mesh...")
-		print("----------------------------")	
-
+		big_msg("Extracting biatrial mesh...")
 		cmd = "meshtool extract mesh -msh="+meshname+" -submsh="+output_folder+"/biatrial/biatrial -tags="+tags_list_string
 		print(cmd)
 		os.system(cmd)
@@ -55,14 +69,9 @@ def meshtool_extract_LA(output_folder,
 		print('Mesh already found. Not overwriting.')
 
 	if do:
-		tags_list = extract_tags(tags_setup,["LA"])
-		tags_list = [str(t) for t in tags_list]
-		tags_list_string = ",".join(tags_list)
+		tags_list_string = get_tags_from_setup(tags_setup,["LA"])
 		
-		print("--------------------------------------")
-		print("Extracting LA mesh from biatrial...")
-		print("--------------------------------------")
-		
+		big_msg("Extracting LA mesh from biatrial...")		
 		cmd = "meshtool extract mesh -msh="+output_folder+"/biatrial/biatrial -submsh="+output_folder+"/la/la -tags="+tags_list_string
 		os.system(cmd)
 
@@ -76,15 +85,10 @@ def meshtool_extract_RA(output_folder,
 		print('Mesh already found. Not overwriting.')
 
 	if do:
-		tags_list = extract_tags(tags_setup,["RA"])
-		tags_list = [str(t) for t in tags_list]
-		tags_list_string = ",".join(tags_list)
+		tags_list_string = get_tags_from_setup(tags_setup,["RA"])
 		
-		print("--------------------------------------")
-		print("Extracting RA mesh from biatrial...")
-		print("--------------------------------------")
-		
-		cmd = "meshtool extract mesh -msh="+output_folder+"/biatrial/biatrial -submsh="+output_folder+"/ra/ra -tags="+tags_list_string
+		big_msg("Extracting RA mesh from biatrial...")
+		cmd = f"meshtool extract mesh -msh={output_folder}/biatrial/biatrial -submsh={output_folder}/ra/ra -tags={tags_list_string}"
 		os.system(cmd)
 
 def meshtool_extract_surfaces(meshname,
@@ -93,423 +97,224 @@ def meshtool_extract_surfaces(meshname,
 		 					  export_sup_inf=False,
 		 					  rm_vv_from_aa=False,
 		 					  surface="epi"):
+	
+	def extract_surface(surf, tag_init, tag_end, conn=":"):
+		""" Creates meshtool commands from function inputs """
+		return f"meshtool extract surface -msh={meshname} -surf={output_folder}/tmp/{surf} -op={tag_init}{conn}{tag_end} -ofmt=vtk"
 
-	tag_la = extract_tags(tags_setup,["LA"])
-	tag_la = [str(t) for t in tag_la]
-	tag_la_string = ",".join(tag_la)
+	tag_la_string = get_tags_from_setup(tags_setup,["LA"])
+	tag_ra_string = get_tags_from_setup(tags_setup,["RA"])
 
-	tag_ra = extract_tags(tags_setup,["RA"])
-	tag_ra = [str(t) for t in tag_ra]
-	tag_ra_string = ",".join(tag_ra)
+	aux_la_rm_labels = ["mitral","RSPV","RIPV","LSPV","LIPV","LAA","PV_planes"]
+	aux_ra_rm_labels = ["SVC","IVC","tricuspid","VC_planes"]
+	if rm_vv_from_aa:
+		aux_la_rm_labels.append("LV")
+		aux_ra_rm_labels.append("RV")
+	
+	tag_la_rm_string = get_tags_from_setup(tags_setup,aux_la_rm_labels)
+	tag_ra_rm_string = get_tags_from_setup(tags_setup,aux_ra_rm_labels)
 
-	if not rm_vv_from_aa:
-		tag_la_rm = extract_tags(tags_setup,["mitral","RSPV","RIPV","LSPV","LIPV","LAA","PV_planes"])
-	else:
-		tag_la_rm = extract_tags(tags_setup,["mitral","RSPV","RIPV","LSPV","LIPV","LAA","PV_planes","LV"])
-	tag_la_rm = [str(t) for t in tag_la_rm]
-	tag_la_rm_string = ",".join(tag_la_rm)
+	tag_mv_string = get_tags_from_setup(tags_setup,["mitral"])
+	tag_tv_string = get_tags_from_setup(tags_setup,["tricuspid"])
+	tag_rpv_string = get_tags_from_setup(tags_setup,["RSPV","RIPV"])
+	tag_svc_string = get_tags_from_setup(tags_setup,["SVC"])
+	tag_lpv_string = get_tags_from_setup(tags_setup,["LSPV","LIPV"])
+	tag_ivc_string = get_tags_from_setup(tags_setup,["IVC"])
+	tag_pv_planes_string = get_tags_from_setup(tags_setup,["PV_planes"])
+	tag_vc_planes_string = get_tags_from_setup(tags_setup,["VC_planes"])
+	tag_lv_string = get_tags_from_setup(tags_setup,["LV"])
+	tag_rv_string = get_tags_from_setup(tags_setup,["RV"])
 
-	if not rm_vv_from_aa:
-		tag_ra_rm = extract_tags(tags_setup,["SVC","IVC","tricuspid","VC_planes"])
-	else:
-		tag_ra_rm = extract_tags(tags_setup,["SVC","IVC","tricuspid","VC_planes","RV"])
-	tag_ra_rm = [str(t) for t in tag_ra_rm]
-	tag_ra_rm_string = ",".join(tag_ra_rm)
+	os.system(f"mkdir -p {output_folder}/tmp")
 
-	tag_mv = extract_tags(tags_setup,["mitral"])
-	tag_mv = [str(t) for t in tag_mv]
-	tag_mv_string = ",".join(tag_mv)
+	surf_params = [
+		("mitral", "Extracting mitral ring...", tag_mv_string),
+		("rpv", "Extracting right PV ring...", tag_rpv_string),
+		("lpv", "Extracting left PV ring...", tag_lpv_string),
+	]
 
-	tag_tv = extract_tags(tags_setup,["tricuspid"])
-	tag_tv = [str(t) for t in tag_tv]
-	tag_tv_string = ",".join(tag_tv)
+	for surf_type, msg, my_tag_end in surf_params:
+		big_msg(msg)
+		os.system(extract_surface(surf_type, tag_la_string, my_tag_end))
 
-	tag_rpv = extract_tags(tags_setup,["RSPV","RIPV"])
-	tag_rpv = [str(t) for t in tag_rpv]
-	tag_rpv_string = ",".join(tag_rpv)
-
-	tag_svc = extract_tags(tags_setup,["SVC"])
-	tag_svc = [str(t) for t in tag_svc]
-	tag_svc_string = ",".join(tag_svc)
-
-	tag_lpv = extract_tags(tags_setup,["LSPV","LIPV"])
-	tag_lpv = [str(t) for t in tag_lpv]
-	tag_lpv_string = ",".join(tag_lpv)
-
-	tag_ivc = extract_tags(tags_setup,["IVC"])
-	tag_ivc = [str(t) for t in tag_ivc]
-	tag_ivc_string = ",".join(tag_ivc)
-
-	tag_pv_planes = extract_tags(tags_setup,["PV_planes"])
-	tag_pv_planes = [str(t) for t in tag_pv_planes]
-	tag_pv_planes_string = ",".join(tag_pv_planes)
-
-	tag_vc_planes = extract_tags(tags_setup,["VC_planes"])
-	tag_vc_planes = [str(t) for t in tag_vc_planes]
-	tag_vc_planes_string = ",".join(tag_vc_planes)
-
-	tag_lv = extract_tags(tags_setup,["LV"])
-	tag_lv = [str(t) for t in tag_lv]
-	tag_lv_string = ",".join(tag_lv)
-
-	tag_rv = extract_tags(tags_setup,["RV"])
-	tag_rv = [str(t) for t in tag_rv]
-	tag_rv_string = ",".join(tag_rv)
-
-	os.system("mkdir -p "+output_folder+"/tmp")
-
-	print("--------------------------")
-	print("Extracting mitral ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/mitral -op="+tag_la_string+":"+tag_mv_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting right PV ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/rpv -op="+tag_la_string+":"+tag_rpv_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting left PV ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/lpv -op="+tag_la_string+":"+tag_lpv_string+" -ofmt=vtk"
-	os.system(cmd)
 
 	if export_sup_inf:
 
-		tag_rspv = extract_tags(tags_setup,["RSPV"])
-		tag_rspv = [str(t) for t in tag_rspv]
-		tag_rspv_string = ",".join(tag_rspv)	
+		tag_rspv_string = get_tags_from_setup(tags_setup,["RSPV"])
+		tag_ripv_string = get_tags_from_setup(tags_setup,["RIPV"])
+		tag_lspv_string = get_tags_from_setup(tags_setup,["LSPV"])
+		tag_lipv_string = get_tags_from_setup(tags_setup,["LIPV"])
+		tag_laa_string = get_tags_from_setup(tags_setup,["LAA"])
 
-		tag_ripv = extract_tags(tags_setup,["RIPV"])
-		tag_ripv = [str(t) for t in tag_ripv]
-		tag_ripv_string = ",".join(tag_ripv)	
+		surf_params = [
+			("laa", "Extracting LAA ring...", tag_laa_string),
+			("ripv", "Extracting right inferior PV ring...", tag_ripv_string),
+			("lipv", "Extracting left inferior PV ring...", tag_lipv_string),
+			("rspv", "Extracting right superior PV ring...", tag_rspv_string),
+			("lspv", "Extracting left superior PV ring...", tag_lspv_string)
+		]
 
-		tag_lspv = extract_tags(tags_setup,["LSPV"])
-		tag_lspv = [str(t) for t in tag_lspv]
-		tag_lspv_string = ",".join(tag_lspv)	
+		for surf, msg, my_tag_end in surf_params:
+			big_msg(msg)
+			os.system(extract_surface(surf, tag_la_string, my_tag_end))
 
-		tag_lipv = extract_tags(tags_setup,["LIPV"])
-		tag_lipv = [str(t) for t in tag_lipv]
-		tag_lipv_string = ",".join(tag_lipv)
-
-		tag_laa = extract_tags(tags_setup,["LAA"])
-		tag_laa = [str(t) for t in tag_laa]
-		tag_laa_string = ",".join(tag_laa)
-
-		print("------------------------------------------")
-		print("Extracting LAA ring...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/laa -op="+tag_la_string+":"+tag_laa_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting right inferior PV ring...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ripv -op="+tag_la_string+":"+tag_ripv_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting left inferior PV ring...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/lipv -op="+tag_la_string+":"+tag_lipv_string+" -ofmt=vtk"
-		os.system(cmd)
-
-		print("------------------------------------------")
-		print("Extracting right superior PV ring...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/rspv -op="+tag_la_string+":"+tag_rspv_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting left superior PV ring...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/lspv -op="+tag_la_string+":"+tag_lspv_string+" -ofmt=vtk"
-		os.system(cmd)
-
-
-	print("--------------------------")
-	print("Extracting PV planes...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/pv_planes -op="+tag_la_string+":"+tag_pv_planes_string+" -ofmt=vtk"
-	os.system(cmd)
+	big_msg("Extracting PV planes...")
+	os.system(extract_surface("pv_planes", tag_la_string, tag_pv_planes_string))
 
 	if export_sup_inf and surface=="endo":
 
 		if "RSPV_vp" not in tags_setup:
 			raise Exception("If you want to compute the landmarks on the endocardium, you need to provide separate tags for the valve planes")
+		
+		tag_rspv_vp_string = get_tags_from_setup(tags_setup,["RSPV_vp"])
+		tag_ripv_vp_string = get_tags_from_setup(tags_setup,["RIPV_vp"])
+		tag_lspv_vp_string = get_tags_from_setup(tags_setup,["LSPV_vp"])
+		tag_lipv_vp_string = get_tags_from_setup(tags_setup,["LIPV_vp"])
+		tag_laa_vp_string = get_tags_from_setup(tags_setup,["LAA_vp"])
 
-		tag_rspv_vp = extract_tags(tags_setup,["RSPV_vp"])
-		tag_rspv_vp = [str(t) for t in tag_rspv_vp]
-		tag_rspv_vp_string = ",".join(tag_rspv_vp)	
+		surf_params = [
+			("laa_vp", "Extracting LAA valve plane...", tag_laa_vp_string),
+			("ripv_vp", "Extracting right inferior PV valve plane...", tag_ripv_vp_string),
+			("lipv_vp", "Extracting left inferior PV valve plane...", tag_lipv_vp_string),
+			("rspv_vp", "Extracting right superior PV valve plane...", tag_rspv_vp_string),
+			("lspv_vp", "Extracting left superior PV valve plane...", tag_lspv_vp_string)
+		]
 
-		tag_ripv_vp = extract_tags(tags_setup,["RIPV_vp"])
-		tag_ripv_vp = [str(t) for t in tag_ripv_vp]
-		tag_ripv_vp_string = ",".join(tag_ripv_vp)	
+		for surf, msg, my_tag_end in surf_params:
+			big_msg(msg)
+			os.system(extract_surface(surf, tag_la_string, my_tag_end))
+	
+	big_msg("Extracting LA surface...")
+	os.system(extract_surface("la", tag_la_string, tag_la_rm_string, conn="-"))
 
-		tag_lspv_vp = extract_tags(tags_setup,["LSPV_vp"])
-		tag_lspv_vp = [str(t) for t in tag_lspv_vp]
-		tag_lspv_vp_string = ",".join(tag_lspv_vp)	
+	surf_params = [
+		("la_lv", "Extracting LA and LV intersection...", tag_la_string, tag_lv_string),
+		("tricuspid", "Extracting tricuspid ring...", tag_ra_string, tag_tv_string),
+		("svc", "Extracting SVC ring...", tag_ra_string, tag_svc_string),
+		("ivc", "Extracting IVC ring...", tag_ra_string, tag_ivc_string)
+	]
 
-		tag_lipv_vp = extract_tags(tags_setup,["LIPV_vp"])
-		tag_lipv_vp = [str(t) for t in tag_lipv_vp]
-		tag_lipv_vp_string = ",".join(tag_lipv_vp)
+	for surf, msg, my_tag_init, my_tag_end in surf_params:
+		big_msg(msg)
+		os.system(extract_surface(surf, my_tag_init, my_tag_end))
 
-		tag_laa_vp = extract_tags(tags_setup,["LAA_vp"])
-		tag_laa_vp = [str(t) for t in tag_laa_vp]
-		tag_laa_vp_string = ",".join(tag_laa_vp)
-
-		print("------------------------------------------")
-		print("Extracting LAA valve plane...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/laa_vp -op="+tag_la_string+":"+tag_laa_vp_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting right inferior PV valve plane...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ripv_vp -op="+tag_la_string+":"+tag_ripv_vp_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting left inferior PV valve plane...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/lipv_vp -op="+tag_la_string+":"+tag_lipv_vp_string+" -ofmt=vtk"
-		os.system(cmd)
-
-		print("------------------------------------------")
-		print("Extracting right superior PV valve plane...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/rspv_vp -op="+tag_la_string+":"+tag_rspv_vp_string+" -ofmt=vtk"
-		os.system(cmd)	
-
-		print("------------------------------------------")
-		print("Extracting left superior PV valve plane...")
-		print("------------------------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/lspv_vp -op="+tag_la_string+":"+tag_lspv_vp_string+" -ofmt=vtk"
-		os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting LA surface...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/la -op="+tag_la_string+"-"+tag_la_rm_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("------------------------------------")
-	print("Extracting LA and LV intersection...")
-	print("------------------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/la_lv -op="+tag_la_string+":"+tag_lv_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting tricuspid ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/tricuspid -op="+tag_ra_string+":"+tag_tv_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting SVC ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/svc -op="+tag_ra_string+":"+tag_svc_string+" -ofmt=vtk"
-	os.system(cmd)
-
-	print("--------------------------")
-	print("Extracting IVC ring...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ivc -op="+tag_ra_string+":"+tag_ivc_string+" -ofmt=vtk"
-	os.system(cmd)
 
 	if surface=="endo":
 
 		if "SVC_vp" not in tags_setup:
 			raise Exception("If you want to compute the landmarks on the endocardium, you need to provide separate tags for the valve planes")
+		
+		tag_svc_vp_string = get_tags_from_setup(tags_setup,["SVC_vp"])
+		tag_ivc_vp_string = get_tags_from_setup(tags_setup,["IVC_vp"])
 
-		tag_svc_vp = extract_tags(tags_setup,["SVC_vp"])
-		tag_svc_vp = [str(t) for t in tag_svc_vp]
-		tag_svc_vp_string = ",".join(tag_svc_vp)	
+		surf_params = [
+			("svc_vp", "Extracting SVC valve plane...", tag_svc_vp_string),
+			("ivc_vp", "Extracting IVC valve plane...", tag_ivc_vp_string)
+		]
 
-		tag_ivc_vp = extract_tags(tags_setup,["IVC_vp"])
-		tag_ivc_vp = [str(t) for t in tag_ivc_vp]
-		tag_ivc_vp_string = ",".join(tag_ivc_vp)	
+		for surf, msg, my_tag_end in surf_params:
+			big_msg(msg)
+			os.system(extract_surface(surf, tag_ra_string, my_tag_end))
 
-		print("--------------------------")
-		print("Extracting SVC valve plane...")
-		print("--------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/svc_vp -op="+tag_ra_string+":"+tag_svc_vp_string+" -ofmt=vtk"
-		os.system(cmd)
+	surf_params = [
+		("pv_planes", "Extracting PV planes...", tag_la_string, tag_pv_planes_string, ":"),
+		("vc_planes", "Extracting SVC IVC planes...", tag_ra_string, tag_vc_planes_string, ":"),
+		("ra_rv", "Extracting RA and RV intersection...", tag_ra_string, tag_rv_string, ":"),
+		("ra", "Extracting RA surface...", tag_ra_string, tag_ra_rm_string, "-")	
+	]
 
-		print("--------------------------")
-		print("Extracting IVC valve plane...")
-		print("--------------------------")
-		cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ivc_vp -op="+tag_ra_string+":"+tag_ivc_vp_string+" -ofmt=vtk"
-		os.system(cmd)
+	for surf, msg, my_tag_init, my_tag_end, my_conn in surf_params:
+		big_msg(msg)
+		os.system(extract_surface(surf, my_tag_init, my_tag_end, conn=my_conn))
 
-	print("--------------------------")
-	print("Extracting PV planes...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/pv_planes -op="+tag_la_string+":"+tag_pv_planes_string+" -ofmt=vtk"
-	os.system(cmd)
+	big_msg("Extracting LA surface connected components...")
+	os.system(f"meshtool extract unreachable -msh={output_folder}/tmp/la.surfmesh.vtk -submsh={output_folder}/tmp/la_cc -ofmt=carp_txt")
 
-	print("--------------------------")
-	print("Extracting SVC IVC planes...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/vc_planes -op="+tag_ra_string+":"+tag_vc_planes_string+" -ofmt=vtk"
-	os.system(cmd)
+	big_msg("Extracting RA surface connected components...")
+	os.system(f"meshtool extract unreachable -msh={output_folder}/tmp/ra.surfmesh.vtk -submsh={output_folder}/tmp/ra_cc -ofmt=carp_txt")
 
-	print("------------------------------------")
-	print("Extracting RA and RV intersection...")
-	print("------------------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ra_rv -op="+tag_ra_string+":"+tag_rv_string+" -ofmt=vtk"
-	os.system(cmd)
+	# Finish extraction of labels, moving on to the next step
+	def find_and_append(list_of_files, prefix) :
+		elements = []
+		ix = 0
+		is_file = True 
+		while is_file :
+			elemname = f"{prefix}.part{ix}"
+			if f"{elemname}.elem" in list_of_files :
+				elements.append(elemname)
+			else :
+				is_file = False
+			ix += 1
+		return elements
+	
+	def sort_and_clean(cc_list) : 
+		if len(cc_list) > 2 : 
+			cc_size = np.zeros((len(cc_list),),dtype=int)
+			for i,cc in enumerate(cc_list):
+				surf = read_elem(f"{output_folder}/tmp/{cc}.elem",el_type="Tr",tags=False)
+				cc_size[i] = surf.shape[0]
 
-	print("--------------------------")
-	print("Extracting RA surface...")
-	print("--------------------------")
-	cmd = "meshtool extract surface -msh="+meshname+" -surf="+output_folder+"/tmp/ra -op="+tag_ra_string+"-"+tag_ra_rm_string+" -ofmt=vtk"
-	os.system(cmd)
+			cc_list_old = copy.deepcopy(cc_list)
+			sorted_size = np.argsort(cc_size)
+			cc_list[0] = cc_list_old[sorted_size[-1]]
+			cc_list[1] = cc_list_old[sorted_size[-2]]
 
-	print("-----------------------------------------------")
-	print("Extracting LA surface connected components...")
-	print("-----------------------------------------------")
-	cmd = "meshtool extract unreachable -msh="+output_folder+"/tmp/la.surfmesh.vtk -submsh="+output_folder+"/tmp/la_cc -ofmt=carp_txt"
-	os.system(cmd)
+			for i in range(len(cc_list)-2):
+				os.system(f"rm {output_folder}/tmp/{cc_list_old[sorted_size[i]]}.*")
+		
+		return cc_list
+		
+	def id_and_save_endo_epi(cc_list, atrium : str) : 
+		pts0 = read_pts(f"{output_folder}/tmp/{cc_list[0]}.pts")
+		surf0 = read_elem(f"{output_folder}/tmp/{cc_list[0]}.elem",el_type="Tr",tags=False)
 
-	print("-----------------------------------------------")
-	print("Extracting RA surface connected components...")
-	print("-----------------------------------------------")
-	cmd = "meshtool extract unreachable -msh="+output_folder+"/tmp/ra.surfmesh.vtk -submsh="+output_folder+"/tmp/ra_cc -ofmt=carp_txt"
-	os.system(cmd)
+		pts1 = read_pts(f"{output_folder}/tmp/{cc_list[1]}.pts")
+		surf1 = read_elem(f"{output_folder}/tmp/{cc_list[1]}.elem",el_type="Tr",tags=False)
 
+		cog0 = np.mean(pts0,axis=0)
+		is_outward = np.zeros((surf0.shape[0],),dtype=int)
+		for i,t in enumerate(surf0):
+			v0 = pts0[t[1],:] - pts0[t[0],:]
+			v0 = v0/np.linalg.norm(v0)
+
+			v1 = pts0[t[2],:] - pts0[t[0],:]
+			v1 = v1/np.linalg.norm(v1)
+
+			n = np.cross(v0,v1)
+			n = n/np.linalg.norm(n)
+
+			dot_prod = np.dot(cog0-pts0[t[0],:],n)
+
+			if dot_prod>0:
+				is_outward[i] = 1
+		
+		if np.sum(is_outward)/surf0.shape[0]>0.7:
+			print(f'{cc_list[0]} is the epicardium')
+			print(f'{cc_list[1]} is the endocardium')
+			endo = 0
+			epi = 1
+		else:
+			print(f'{cc_list[1]} is the epicardium')
+			print(f'{cc_list[0]} is the endocardium')	
+			endo = 1
+			epi = 0
+		
+		print(f'Renaming {atrium.upper()} connected components...')
+		formats = ["nod","eidx","elem","lon","pts"]
+		for f in formats:
+			mymv(f"{output_folder}/tmp/{cc_list[endo]}.{f}", f"{output_folder}/tmp/{atrium.lower()}_endo.{f}")
+			mymv(f"{output_folder}/tmp/{cc_list[epi]}.{f}", f"{output_folder}/tmp/{atrium.lower()}_epi.{f}")
+	
 	tmp_files = os.listdir(output_folder+"/tmp")
-	la_cc = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "la_cc.part"+str(i)+".elem" in tmp_files:
-			la_cc.append("la_cc.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
-
-	ra_cc = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "ra_cc.part"+str(i)+".elem" in tmp_files:
-			ra_cc.append("ra_cc.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
+	la_cc = find_and_append(tmp_files, "la_cc")
+	ra_cc = find_and_append(tmp_files, "ra_cc")
 
 	print("Checking connected component size and keeping only the two biggest...")
-	if len(la_cc)>2:
-		cc_size = np.zeros((len(la_cc),),dtype=int)
-		for i,cc in enumerate(la_cc):
-			surf = read_elem(output_folder+"/tmp/"+cc+".elem",el_type="Tr",tags=False)
-			cc_size[i] = surf.shape[0]
+	la_cc = sort_and_clean(la_cc)
+	ra_cc = sort_and_clean(ra_cc)
 
-		la_cc_old = copy.deepcopy(la_cc)
-		sorted_size = np.argsort(cc_size)
-		la_cc[0] = la_cc_old[sorted_size[-1]]
-		la_cc[1] = la_cc_old[sorted_size[-2]]
-
-		for i in range(len(la_cc)-2):
-			os.system("rm "+output_folder+"/tmp/"+la_cc_old[sorted_size[i]]+".*")
-
-	if len(ra_cc)>2:
-		cc_size = np.zeros((len(ra_cc),),dtype=int)
-		for i,cc in enumerate(ra_cc):
-			surf = read_elem(output_folder+"/tmp/"+cc+".elem",el_type="Tr",tags=False)
-			cc_size[i] = surf.shape[0]
-
-		ra_cc_old = copy.deepcopy(ra_cc)
-		sorted_size = np.argsort(cc_size)
-		ra_cc[0] = ra_cc_old[sorted_size[-1]]
-		ra_cc[1] = ra_cc_old[sorted_size[-2]]
-
-		for i in range(len(ra_cc)-2):
-			os.system("rm "+output_folder+"/tmp/"+ra_cc_old[sorted_size[i]]+".*")
-
-	pts0 = read_pts(output_folder+"/tmp/"+la_cc[0]+".pts")
-	surf0 = read_elem(output_folder+"/tmp/"+la_cc[0]+".elem",el_type="Tr",tags=False)
-
-	pts1 = read_pts(output_folder+"/tmp/"+la_cc[1]+".pts")
-	surf1 = read_elem(output_folder+"/tmp/"+la_cc[1]+".elem",el_type="Tr",tags=False)
-
-	cog0 = np.mean(pts0,axis=0)
-	is_outward = np.zeros((surf0.shape[0],),dtype=int)
-	for i,t in enumerate(surf0):
-		v0 = pts0[t[1],:] - pts0[t[0],:]
-		v0 = v0/np.linalg.norm(v0)
-
-		v1 = pts0[t[2],:] - pts0[t[0],:]
-		v1 = v1/np.linalg.norm(v1)
-
-		n = np.cross(v0,v1)
-		n = n/np.linalg.norm(n)
-
-		dot_prod = np.dot(cog0-pts0[t[0],:],n)
-
-		if dot_prod>0:
-			is_outward[i] = 1
-
-	if np.sum(is_outward)/surf0.shape[0]>0.7:
-		print(la_cc[0]+' is the epicardium')
-		print(la_cc[1]+' is the endocardium')
-		endo = 0
-		epi = 1
-	else:
-		print(la_cc[1]+' is the epicardium')
-		print(la_cc[0]+' is the endocardium')	
-		endo = 1
-		epi = 0
-
-	print('Renaming LA connected components...')
-	formats = ["nod","eidx","elem","lon","pts"]
-	for f in formats:
-		os.system("mv "+output_folder+"/tmp/"+la_cc[endo]+"."+f+" "+output_folder+"/tmp/la_endo."+f)
-		os.system("mv "+output_folder+"/tmp/"+la_cc[epi]+"."+f+" "+output_folder+"/tmp/la_epi."+f)
-
-	pts0 = read_pts(output_folder+"/tmp/"+ra_cc[0]+".pts")
-	surf0 = read_elem(output_folder+"/tmp/"+ra_cc[0]+".elem",el_type="Tr",tags=False)
-
-	pts1 = read_pts(output_folder+"/tmp/"+ra_cc[1]+".pts")
-	surf1 = read_elem(output_folder+"/tmp/"+ra_cc[1]+".elem",el_type="Tr",tags=False)
-
-	cog0 = np.mean(pts0,axis=0)
-	is_outward = np.zeros((surf0.shape[0],),dtype=int)
-	for i,t in enumerate(surf0):
-		v0 = pts0[t[1],:] - pts0[t[0],:]
-		v0 = v0/np.linalg.norm(v0)
-
-		v1 = pts0[t[2],:] - pts0[t[0],:]
-		v1 = v1/np.linalg.norm(v1)
-
-		n = np.cross(v0,v1)
-		n = n/np.linalg.norm(n)
-
-		dot_prod = np.dot(cog0-pts0[t[0],:],n)
-
-		if dot_prod>0:
-			is_outward[i] = 1
-
-	if np.sum(is_outward)/surf0.shape[0]>0.7:
-		print(ra_cc[0]+' is the epicardium')
-		print(ra_cc[1]+' is the endocardium')
-		endo = 0
-		epi = 1
-	else:
-		print(ra_cc[1]+' is the epicardium')
-		print(ra_cc[0]+' is the endocardium')	
-		endo = 1
-		epi = 0
-
-	print('Renaming RA connected components...')
-	formats = ["nod","eidx","elem","lon","pts"]
-	for f in formats:
-		os.system("mv "+output_folder+"/tmp/"+ra_cc[endo]+"."+f+" "+output_folder+"/tmp/ra_endo."+f)
-		os.system("mv "+output_folder+"/tmp/"+ra_cc[epi]+"."+f+" "+output_folder+"/tmp/ra_epi."+f)
+	id_and_save_endo_epi(la_cc, "la")
+	id_and_save_endo_epi(ra_cc, "ra")
 
 def export_LA_vtk_msh(output_folder,
 					  tags_setup):
@@ -586,47 +391,23 @@ def export_vtk_meshes_caroline(output_folder,
 
 	tets = read_elem(output_folder+"/la/la.elem",el_type="Tt",tags=False)
 	pts = read_pts(output_folder+"/la/la.pts")
-	
-	surface_list = [output_folder+"/tmp/la.surf",
-					output_folder+"/tmp/mitral.surf",
-					output_folder+"/tmp/ripv.surf",
-					output_folder+"/tmp/rspv.surf",
-					output_folder+"/tmp/lipv.surf",
-					output_folder+"/tmp/lspv.surf",
-					output_folder+"/tmp/laa.surf",
-					output_folder+"/tmp/pv_planes.surf",
-					output_folder+"/tmp/la_lv.surf"]
+
+	surface_names = ["la", "mitral", "ripv", "rspv", "lipv", "lspv", "laa", "pv_planes", "la_lv"]
 	if surface=="endo":
-		surface_list += [output_folder+"/tmp/ripv_vp.surf",
-						 output_folder+"/tmp/rspv_vp.surf",
-						 output_folder+"/tmp/lipv_vp.surf",
-						 output_folder+"/tmp/lspv_vp.surf",
-						 output_folder+"/tmp/laa_vp.surf"]
+		surface_names += ["ripv_vp", "rspv_vp", "lipv_vp", "lspv_vp", "laa_vp"]
+	
+	surface_list = [os.path.join(output_folder, f"/tmp/{name}.surf") for name in surface_names]
 	surface_list_string = ','.join(surface_list)
 
-	surface_bia_list = [output_folder+"/biatrial/la.surf",
-						output_folder+"/biatrial/mitral.surf",
-						output_folder+"/biatrial/ripv.surf",
-						output_folder+"/biatrial/rspv.surf",
-						output_folder+"/biatrial/lipv.surf",
-						output_folder+"/biatrial/lspv.surf",
-						output_folder+"/biatrial/laa.surf",
-						output_folder+"/biatrial/pv_planes.surf",
-						output_folder+"/biatrial/la_lv.surf"]
-	if surface=="endo":
-		surface_bia_list += [output_folder+"/biatrial/ripv_vp.surf",
-						 	 output_folder+"/biatrial/rspv_vp.surf",
-						 	 output_folder+"/biatrial/lipv_vp.surf",
-						 	 output_folder+"/biatrial/lspv_vp.surf",
-						 	 output_folder+"/biatrial/laa_vp.surf"]
+	surface_bia_list = [os.path.join(output_folder, f"/biatrial/{name}.surf") for name in surface_names]
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/biatrial/biatrial -files="+surface_list_string+" -outdir="+output_folder+"/biatrial/ -mode=m2s"
+	cmd = f"meshtool map -submsh={output_folder}/biatrial/biatrial -files={surface_list_string} -outdir={output_folder}/biatrial/ -mode=m2s"
 	os.system(cmd)
 
 	print('Mapping surfaces onto LA mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/la/la -files="+surface_bia_list_string+" -outdir="+output_folder+"/la/ -mode=m2s"
+	cmd = f"meshtool map -submsh={output_folder}/la/la -files={surface_bia_list_string} -outdir={output_folder}/la/ -mode=m2s"
 	os.system(cmd)
 
 	la_tr = read_elem(output_folder+"/la/la.surf",el_type="Tr",tags=False)
@@ -643,35 +424,22 @@ def export_vtk_meshes_caroline(output_folder,
 	tets = read_elem(output_folder+"/ra/ra.elem",el_type="Tt",tags=False)
 	pts = read_pts(output_folder+"/ra/ra.pts")
 	
-	surface_list = [output_folder+"/tmp/ra.surf",
-					output_folder+"/tmp/tricuspid.surf",
-					output_folder+"/tmp/svc.surf",
-					output_folder+"/tmp/ivc.surf",
-					output_folder+"/tmp/vc_planes.surf",
-					output_folder+"/tmp/ra_rv.surf"]
-
+	surface_names = ["ra", "tricuspid", "svc", "ivc", "vc_planes", "ra_rv"]
 	if surface=="endo":
-		surface_list += [output_folder+"/tmp/svc_vp.surf",
-						 output_folder+"/tmp/ivc_vp.surf"]
+		surface_names += ["svc_vp", "ivc_vp"]
+
+	surface_list = [os.path.join(output_folder, f"/tmp/{name}.surf") for name in surface_names]
 	surface_list_string = ','.join(surface_list)
 
-	surface_bia_list = [output_folder+"/biatrial/ra.surf",
-						output_folder+"/biatrial/tricuspid.surf",
-						output_folder+"/biatrial/svc.surf",
-						output_folder+"/biatrial/ivc.surf",
-						output_folder+"/biatrial/vc_planes.surf",
-						output_folder+"/biatrial/ra_rv.surf"]
-	if surface=="endo":
-		surface_bia_list += [output_folder+"/biatrial/svc_vp.surf",
-						 	 output_folder+"/biatrial/ivc_vp.surf"]
+	surface_bia_list = [os.path.join(output_folder, f"/biatrial/{name}.surf") for name in surface_names]
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/biatrial/biatrial -files="+surface_list_string+" -outdir="+output_folder+"/biatrial/ -mode=m2s"
+	cmd = f"meshtool map -submsh={output_folder}/biatrial/biatrial -files={surface_list_string} -outdir={output_folder}/biatrial/ -mode=m2s"
 	os.system(cmd)
 
 	print('Mapping surfaces onto RA mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/ra/ra -files="+surface_bia_list_string+" -outdir="+output_folder+"/ra/ -mode=m2s"
+	cmd = f"meshtool map -submsh={output_folder}/ra/ra -files={surface_bia_list_string} -outdir={output_folder}/ra/ -mode=m2s"
 	os.system(cmd)
 
 	ra_tr = read_elem(output_folder+"/ra/ra.surf",el_type="Tr",tags=False)
@@ -688,37 +456,48 @@ def export_vtk_meshes_caroline(output_folder,
 	write_surf_caroline(output_folder+"/ra/ra_epi.surf",ra_epi_tr)
 	write_surf_caroline(output_folder+"/ra/ra_endo.surf",ra_endo_tr)
 
-	print('-----------------------------------------------------')
-	print('Finding LA and RA landmarks...')
-	print('-----------------------------------------------------')
+	big_msg('Finding LA and RA landmarks...')
 
 	find_landmarks(output_folder,
 				   surface=surface,
 				   scale_factor=scale_factor,
 				   raa_apex_file=raa_apex_file)
 
-	print('-----------------------------------------------------')
-	print('Organising folders...')
-	print('-----------------------------------------------------')
+	big_msg('Organising folders...')
 
 	os.system("mkdir -p "+output_folder+"/LA_endo/")
 	os.system("mkdir -p "+output_folder+"/LA_epi/")
 	os.system("mkdir -p "+output_folder+"/RA_endo/")
 	os.system("mkdir -p "+output_folder+"/RA_epi/")
 
-	os.system("meshtool convert -imsh="+output_folder+"/tmp/la_endo -ofmt=vtk_polydata -omsh="+output_folder+"/LA_endo/LA_endo")
-	os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_endo -ofmt=vtk_polydata -omsh="+output_folder+"/RA_endo/RA_endo")
-	os.system("cp "+output_folder+"/la/prodLaLandmarks.txt "+output_folder+"/LA_endo/")
-	os.system("cp "+output_folder+"/la/prodLaRegion.txt "+output_folder+"/LA_endo/")
-	os.system("cp "+output_folder+"/la/prodLaLandmarks.txt "+output_folder+"/LA_epi/")
-	os.system("cp "+output_folder+"/la/prodLaRegion.txt "+output_folder+"/LA_epi/")
+	landmarks_dic = {
+		'LA_endo' : [f"la/{fn}" for fn in ['prodLaLandmarks.txt','prodLaRegion.txt']], 
+		'LA_epi' : [f"la/{fn}" for fn in ['prodLaLandmarks.txt','prodLaRegion.txt']],
+		'RA_endo' : [f"ra/{fn}" for fn in ['prodRaLandmarks.txt','prodRaRegion.txt']],
+		'RA_epi' : [f"ra/{fn}" for fn in ['prodRaLandmarks.txt','prodRaRegion.txt']]
+	}
 
-	os.system("meshtool convert -imsh="+output_folder+"/tmp/la_epi -ofmt=vtk_polydata -omsh="+output_folder+"/LA_epi/LA_epi")
-	os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_epi -ofmt=vtk_polydata -omsh="+output_folder+"/RA_epi/RA_epi")
-	os.system("cp "+output_folder+"/ra/prodRaLandmarks.txt "+output_folder+"/RA_endo/")
-	os.system("cp "+output_folder+"/ra/prodRaRegion.txt "+output_folder+"/RA_endo/")
-	os.system("cp "+output_folder+"/ra/prodRaLandmarks.txt "+output_folder+"/RA_epi/")
-	os.system("cp "+output_folder+"/ra/prodRaRegion.txt "+output_folder+"/RA_epi/")
+	for key in landmarks_dic.keys(): 
+		for fn in landmarks_dic[key] : 
+			mycp(os.path.join(output_folder,fn), os.path.join(output_folder,key+"/"))
+
+	for a in ["la","ra"]:
+		for l in ["endo","epi"]:
+			os.system(f"meshtool convert -imsh={output_folder}/tmp/{a}_{l} -ofmt=vtk_polydata -omsh={output_folder}/{a.upper()}_{l}/{a.upper()}_{l}")
+
+	# os.system("meshtool convert -imsh="+output_folder+"/tmp/la_endo -ofmt=vtk_polydata -omsh="+output_folder+"/LA_endo/LA_endo")
+	# os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_endo -ofmt=vtk_polydata -omsh="+output_folder+"/RA_endo/RA_endo")
+	# mycp(os.path.join(output_folder,"la","prodLaLandmarks.txt"), os.path.join(output_folder,"LA_endo/"))
+	# mycp(os.path.join(output_folder,"la","prodLaRegion.txt"), os.path.join(output_folder,"LA_endo/"))
+	# mycp(os.path.join(output_folder,"ra","prodRaLandmarks.txt"), os.path.join(output_folder,"RA_endo/"))
+	# mycp(os.path.join(output_folder,"ra","prodRaRegion.txt"), os.path.join(output_folder,"RA_endo/"))
+
+	# os.system("meshtool convert -imsh="+output_folder+"/tmp/la_epi -ofmt=vtk_polydata -omsh="+output_folder+"/LA_epi/LA_epi")
+	# os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_epi -ofmt=vtk_polydata -omsh="+output_folder+"/RA_epi/RA_epi")
+	# mycp(os.path.join(output_folder,"la","prodLaLandmarks.txt"), os.path.join(output_folder,"LA_epi/"))
+	# mycp(os.path.join(output_folder,"la","prodLaRegion.txt"), os.path.join(output_folder,"LA_epi/"))
+	# mycp(os.path.join(output_folder,"ra","prodRaLandmarks.txt"), os.path.join(output_folder,"RA_epi/"))
+	# mycp(os.path.join(output_folder,"ra","prodRaRegion.txt"), os.path.join(output_folder,"RA_epi/"))
 
 def recompute_raa_base(output_folder,
 					   raa_apex_file,
@@ -797,9 +576,7 @@ def export_RA_vtk_msh(output_folder,
 
 	ra_surface_tr = np.concatenate((ra_endo_tr,ra_epi_tr,tricuspid_tr,svc_tr,ivc_tr),axis=0)
 
-	print("---------------------------------------------")
-	print("Extracting points for SVC IVC geodesic...")
-	print("---------------------------------------------")
+	big_msg("Extracting points for SVC IVC geodesic...")
 	idx_geodesic,anterior_posterior_tag = find_SVC_IVC_geodesic(output_folder,r_geodesic=r_geodesic)
 	tags_ra_epi = np.zeros((ra_epi_tr.shape[0],),dtype=int)+tags_setup["RA"]["epi"]
 	tags_ra_epi[idx_geodesic] = tags_setup["RA"]["roof_line"]
@@ -824,25 +601,16 @@ def export_RA_vtk_msh(output_folder,
 
 def meshtool_extract_base(mesh,surf_folder,input_tags):
 
-	tags_list_vent = extract_tags(input_tags,["LV","RV"])
-	tags_list_vent = [str(t) for t in tags_list_vent]
-	tags_list_vent_string = ",".join(tags_list_vent)
-
-	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV"])
-	tags_list_VPs = [str(t) for t in tags_list_VPs]
-	tags_list_VPs_string = ",".join(tags_list_VPs)
+	tags_list_vent_string = get_tags_from_setup(input_tags, ["LV","RV"])
+	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/myocardium.base -ofmt=vtk -op="+tags_list_vent_string+":"+tags_list_VPs_string)
 
 def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 
 	tags_list_vent = extract_tags(input_tags,["LV","RV"])
-	tags_list_vent = [str(t) for t in tags_list_vent]
-	tags_list_vent_string = ",".join(tags_list_vent)
-
-	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV"])
-	tags_list_VPs = [str(t) for t in tags_list_VPs]
-	tags_list_VPs_string = ",".join(tags_list_VPs)
+	tags_list_vent_string = get_tags_from_setup(input_tags, ["LV","RV"])
+	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_vent_string+"-"+tags_list_VPs_string)
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
@@ -1034,13 +802,8 @@ def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 
 def meshtool_extract_septum(mesh,surf_folder,input_tags):
 
-	tags_list_lv = extract_tags(input_tags,["LV"])
-	tags_list_lv = [str(t) for t in tags_list_lv]
-	tags_list_lv_string = ",".join(tags_list_lv)
-
-	tags_list_remove = extract_tags(input_tags,["RV","RA","PArt"])
-	tags_list_remove = [str(t) for t in tags_list_remove]
-	tags_list_remove_string = ",".join(tags_list_remove)
+	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
+	tags_list_remove_string = get_tags_from_setup(input_tags, ["RV","RA","PArt"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/myocardium.rvsept -ofmt=vtk -op="+tags_list_lv_string+"-"+tags_list_remove_string)
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/myocardium.rvsept.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/myocardium.rvsept_CC")
@@ -1079,36 +842,19 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 		os.system("mv "+surf_folder+"/tmp/"+rvsept_CC[1]+"."+f+" "+surf_folder+"/tmp/myocardium.rvsept."+f)
 
 def meshtool_extract_la_base(mesh,surf_folder,input_tags):
-	tags_list_la = extract_tags(input_tags,["LA"])
-	tags_list_la = [str(t) for t in tags_list_la]
-	tags_list_la_string = ",".join(tags_list_la)
 
-	tags_list_lv = extract_tags(input_tags,["LV"])
-	tags_list_lv = [str(t) for t in tags_list_lv]
-	tags_list_lv_string = ",".join(tags_list_lv)
-
-	tags_list_mv = extract_tags(input_tags,["MV"])
-	tags_list_mv = [str(t) for t in tags_list_mv]
-	tags_list_mv_string = ",".join(tags_list_mv)
+	tags_list_la_string = get_tags_from_setup(input_tags, ["LA"])
+	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
+	tags_list_mv_string = get_tags_from_setup(input_tags, ["MV"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/la.base -ofmt=vtk -op="+tags_list_la_string+":"+tags_list_mv_string+","+tags_list_lv_string)
 
 def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
-	tags_list_la = extract_tags(input_tags,["LA"])
-	tags_list_la = [str(t) for t in tags_list_la]
-	tags_list_la_string = ",".join(tags_list_la)
 
-	tags_list_lv = extract_tags(input_tags,["LV"])
-	tags_list_lv = [str(t) for t in tags_list_lv]
-	tags_list_lv_string = ",".join(tags_list_lv)
-
-	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
-	tags_list_VPs = [str(t) for t in tags_list_VPs]
-	tags_list_VPs_string = ",".join(tags_list_VPs)
-
-	tags_list_rings = extract_tags(input_tags,["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
-	tags_list_rings = [str(t) for t in tags_list_rings]
-	tags_list_rings_string = ",".join(tags_list_rings)
+	tags_list_la_string = get_tags_from_setup(input_tags, ["LA"])
+	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
+	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
+	tags_list_rings_string = get_tags_from_setup(input_tags, ["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_la_string+"-"+tags_list_lv_string+","+tags_list_VPs_string+","+tags_list_rings_string)
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
@@ -1184,36 +930,17 @@ def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
 		os.system("mv "+surf_folder+"/tmp/"+epi_endo_CC[endo]+"."+f+" "+surf_folder+"/tmp/la.lvendo."+f)
 
 def meshtool_extract_ra_base(mesh,surf_folder,input_tags):
-	tags_list_ra = extract_tags(input_tags,["RA"])
-	tags_list_ra = [str(t) for t in tags_list_ra]
-	tags_list_ra_string = ",".join(tags_list_ra)
-
-	tags_list_rv = extract_tags(input_tags,["RV"])
-	tags_list_rv = [str(t) for t in tags_list_rv]
-	tags_list_rv_string = ",".join(tags_list_rv)
-
-	tags_list_tv = extract_tags(input_tags,["TV"])
-	tags_list_tv = [str(t) for t in tags_list_tv]
-	tags_list_tv_string = ",".join(tags_list_tv)
+	tags_list_ra_string = get_tags_from_setup(input_tags, ["RA"])
+	tags_list_rv_string = get_tags_from_setup(input_tags, ["RV"])
+	tags_list_tv_string = get_tags_from_setup(input_tags, ["TV"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/ra.base -ofmt=vtk -op="+tags_list_ra_string+":"+tags_list_tv_string+","+tags_list_tv_string)
 
 def meshtool_extract_ra_surfaces(mesh,surf_folder,input_tags):
-	tags_list_ra = extract_tags(input_tags,["RA"])
-	tags_list_ra = [str(t) for t in tags_list_ra]
-	tags_list_ra_string = ",".join(tags_list_ra)
-
-	tags_list_rv = extract_tags(input_tags,["RV"])
-	tags_list_rv = [str(t) for t in tags_list_rv]
-	tags_list_rv_string = ",".join(tags_list_rv)
-
-	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
-	tags_list_VPs = [str(t) for t in tags_list_VPs]
-	tags_list_VPs_string = ",".join(tags_list_VPs)
-
-	tags_list_rings = extract_tags(input_tags,["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
-	tags_list_rings = [str(t) for t in tags_list_rings]
-	tags_list_rings_string = ",".join(tags_list_rings)
+	tags_list_ra_string = get_tags_from_setup(input_tags, ["RA"])
+	tags_list_rv_string = get_tags_from_setup(input_tags, ["RV"])
+	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
+	tags_list_rings_string = get_tags_from_setup(input_tags, ["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_ra_string+"-"+tags_list_rv_string+","+tags_list_VPs_string+","+tags_list_rings_string)
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
@@ -1326,13 +1053,8 @@ def picking_apex(segmentation,mesh,surf_folder,seg_tags):
 	os.system("pickapex "+segmentation+" "+lv_cavity+" "+base+" "+pts+" "+vtx+" > "+surf_folder+"/myocardium.apex.vtx")
 
 def meshtool_extract_biv(mesh,surf_folder,input_tags):
-	tags_list_lv = extract_tags(input_tags,["LV"])
-	tags_list_lv = [str(t) for t in tags_list_lv]
-	tags_list_lv_string = ",".join(tags_list_lv)
-
-	tags_list_rv = extract_tags(input_tags,["RV"])
-	tags_list_rv = [str(t) for t in tags_list_rv]
-	tags_list_rv_string = ",".join(tags_list_rv)
+	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
+	tags_list_rv_string = get_tags_from_setup(input_tags, ["RV"])
 
 	os.system("meshtool extract mesh -msh="+mesh+" -submsh="+surf_folder+"/BiV/BiV -tags="+tags_list_lv_string+","+tags_list_rv_string)
 
@@ -1404,18 +1126,13 @@ def meshtool_map_vtx_ra(surf_folder):
 
 def meshtool_extract_peri(mesh,presimFolder,input_tags):
 
-	tags_list_peri = extract_tags(input_tags,["LV","RV","LA","RA","BB","AV"])
-	tags_list_peri = [str(t) for t in tags_list_peri]
-	tags_list_peri_string = ",".join(tags_list_peri)
-
-	tags_list_not_peri = extract_tags(input_tags,["Ao","PArt",
+	tags_list_peri_string = get_tags_from_setup(input_tags, ["LV","RV","LA","RA","BB","AV"])
+	tags_list_not_peri_string = get_tags_from_setup(input_tags, ["Ao","PArt",
 											 	  "MV","TV","AV","PV",
 											 	  "LSPV","LIPV","RSPV","RIPV",
 											 	  "LAA","SVC","IVC",
 											 	  "LAA_ring","SVC_ring","IVC_ring",
 											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
-	tags_list_not_peri = [str(t) for t in tags_list_not_peri]
-	tags_list_not_peri_string = ",".join(tags_list_not_peri)
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=vtk -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
 	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
@@ -1586,36 +1303,27 @@ def meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags):
 
 def meshtool_extract_rings(mesh,presimFolder,input_tags):
 	print("Extracting the RSPV ring and RIPV ring for use as boundary conditions...")
-	tags_list_rpv_rings = extract_tags(input_tags,["RSPV_ring","RIPV_ring"])
-	tags_list_rpv_rings = [str(t) for t in tags_list_rpv_rings]
-	tags_list_rpv_rings_string = ",".join(tags_list_rpv_rings)
 
-	tags_list_other = extract_tags(input_tags,["LV","RV","LA","RA",
+	tags_list_rpv_rings_string = get_tags_from_setup(input_tags, ["RSPV_ring","RIPV_ring"])
+	tags_list_other_string = get_tags_from_setup(input_tags,["LV","RV","LA","RA",
 											   "Ao","PArt",
 											   "MV","TV","AV","PV",
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","SVC_ring","IVC_ring",
 											   "LSPV_ring","LIPV_ring"])
-	tags_list_other = [str(t) for t in tags_list_other]
-	tags_list_other_string = ",".join(tags_list_other)
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/RPVs -ofmt=vtk -op="+tags_list_rpv_rings_string+"-"+tags_list_other_string)
 
 	print("Extracting the SVC ring for use as a boundary condition...")
-	tags_list_svc_ring = extract_tags(input_tags,["SVC_ring"])
-	tags_list_svc_ring = [str(t) for t in tags_list_svc_ring]
-	tags_list_svc_ring_string = ",".join(tags_list_svc_ring)
-
-	tags_list_other = extract_tags(input_tags,["LV","RV","LA","RA",
+	tags_list_svc_ring_string = get_tags_from_setup(input_tags,["SVC_ring"])
+	tags_list_other_string = get_tags_from_setup(input_tags,["LV","RV","LA","RA",
 											   "Ao","PArt",
 											   "MV","TV","AV","PV",
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","IVC_ring",
 											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
-	tags_list_other = [str(t) for t in tags_list_other]
-	tags_list_other_string = ",".join(tags_list_other)
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/SVC -ofmt=vtk -op="+tags_list_svc_ring_string+"-"+tags_list_other_string)
 
@@ -1629,11 +1337,11 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 	write_vtx(svc_vtx,presimFolder+"/surfaces_simulation/surfaces_rings/SVC.surf.vtx")
 
 def combine_elem_dats(heartFolder,presimFolder):
-	la_map_dat=heartFolder+"/surfaces_uvc_LA/la/uvc/map_rotational_z.dat"
-	ra_map_dat=heartFolder+"/surfaces_uvc_RA/ra/uvc/map_rotational_z.dat"
+	la_map_dat=os.path.join(heartFolder, "/surfaces_uvc_LA/la/uvc/map_rotational_z.dat")
+	ra_map_dat=os.path.join(heartFolder, "/surfaces_uvc_RA/ra/uvc/map_rotational_z.dat")
 
-	os.system("cp "+la_map_dat+" "+presimFolder+"/map_rotational_z_la.dat")
-	os.system("cp "+ra_map_dat+" "+presimFolder+"/map_rotational_z_ra.dat")
+	mycp(la_map_dat,os.path.join(presimFolder, "map_rotational_z_la.dat"))
+	mycp(ra_map_dat,os.path.join(presimFolder, "map_rotational_z_ra.dat"))
 
 	os.system("meshtool interpolate node2elem "
 						+"-omsh="+heartFolder+"/surfaces_uvc_LA/la/la "
