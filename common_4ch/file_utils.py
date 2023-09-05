@@ -16,11 +16,35 @@ class NumpyEncoder(json.JSONEncoder):
 			return obj.tolist()
 		return json.JSONEncoder.default(self, obj)
 
-def mycp(src,dst):
-	os.system(f"cp {src} {dst}")
+def mycp(src,dst, debug=False):
+	cmd = f"cp {src} {dst}"
+	if debug:
+		print(cmd)
+	os.system(cmd)
 
-def mymv(src,dst):
-	os.system(f"mv {src} {dst}")
+def mymv(src,dst, debug=False):
+	cmd = f"mv {src} {dst}"
+	if debug:
+		print(cmd)
+	os.system(cmd)
+
+def mymkdir(path, full_path=False, debug=False):
+	# check if path exists
+	if os.path.exists(path):
+		print(f"Path [{path}] already exists")
+		return
+	
+	flag = "-p" if full_path else ""
+	cmd = f"mkdir {flag} {path}"
+	if debug:
+		print(cmd)
+	os.system(cmd)
+
+def myrm(path, debug=False):
+	cmd = f"rm -rf {path}"
+	if debug:
+		print(cmd)
+	os.system(cmd)
 
 def big_msg(msg):
 	length = len(msg)

@@ -3,12 +3,13 @@ import sys
 
 from common_4ch.json_utils import *
 from common_4ch.meshtools_utils import *
+from common_4ch.file_utils import mycp, mymkdir
 
 import argparse
 import warnings
 
 def main(args):
-
+	
 	os.system("clear")
 
 	warnings.warn("MAKE SURE INPUT TAGS ARE CORRECT")
@@ -17,20 +18,17 @@ def main(args):
 	apexFolder = args.apex_septum_setup
 
 	heartFolder = args.heartFolder
-	mesh=heartFolder+"/meshing/myocardium_OUT/myocardium"
+	mesh=os.path.join(heartFolder, args.mesh) # default = "meshing/myocardium_OUT/myocardium"
 	surf_folder=heartFolder+"/surfaces_uvc/"
 	surf_folder_la=heartFolder+"/surfaces_uvc_LA/"
 	surf_folder_ra=heartFolder+"/surfaces_uvc_RA/"
-
-	os.system("mkdir "+surf_folder)
-	os.system("mkdir "+surf_folder+"/tmp")
-	os.system("mkdir "+surf_folder+"/BiV")
-	os.system("mkdir "+surf_folder_la)
-	os.system("mkdir "+surf_folder_la+"/tmp")
-	os.system("mkdir "+surf_folder_la+"/la")
-	os.system("mkdir "+surf_folder_ra)
-	os.system("mkdir "+surf_folder_ra+"/tmp")
-	os.system("mkdir "+surf_folder_ra+"/ra")
+	
+	list_of_folders = [os.path.join(surf_folder, subf) for subf in ["", "tmp", "BiV"] ]
+	list_of_folders += [os.path.join(surf_folder_la, subf) for subf in ["", "tmp", "la"] ]
+	list_of_folders += [os.path.join(surf_folder_ra, subf) for subf in ["", "tmp", "ra"] ]
+      
+	for folder in list_of_folders:
+		mymkdir(folder)
 
 	# ----------------------------------------------------------------------------------------------
 	# Extract the base
@@ -114,9 +112,8 @@ def main(args):
 	meshtool_map_vtx_la(surf_folder_la)
 
 	print(" ## Copying blank files for LA apex and septum ## ")
-	os.system("cp "+apexFolder+"/la.lvapex.vtx "+surf_folder_la+"/la/la.lvapex.vtx")
-	os.system("cp "+apexFolder+"/la.rvsept_pt.vtx "+surf_folder_la+"/la/la.rvsept_pt.vtx")
-
+	mycp(f"{apexFolder}/la.lvapex.vtx", f"{surf_folder_la}/la/la.lvapex.vtx")
+	mycp(f"{apexFolder}/la.rvsept_pt.vtx", f"{surf_folder_la}/la/la.rvsept_pt.vtx")
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the ra mesh
@@ -128,12 +125,11 @@ def main(args):
 	meshtool_map_vtx_ra(surf_folder_ra)
 
 	print(" ## Copying blank files for RA apex and septum ## ")
-	os.system("cp "+apexFolder+"/ra.lvapex.vtx "+surf_folder_ra+"/ra/ra.lvapex.vtx")
-	os.system("cp "+apexFolder+"/ra.rvsept_pt.vtx "+surf_folder_ra+"/ra/ra.rvsept_pt.vtx")
+	mycp(f"{apexFolder}/ra.lvapex.vtx", f"{surf_folder_ra}/ra/ra.lvapex.vtx")
+	mycp(f"{apexFolder}/ra.rvsept_pt.vtx", f"{surf_folder_ra}/ra/ra.rvsept_pt.vtx")
 
 	print(" ## Copying blank file for RAA apex ## ")
-	os.system("cp "+apexFolder+"/raa_apex.txt "+heartFolder+"/raa_apex.txt")
-
+	mycp(f"{apexFolder}/raa_apex.txt", f"{heartFolder}/raa_apex.txt")
 
 if __name__ == '__main__':
 
@@ -148,6 +144,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--apex_septum_setup', type=str, default="./parfiles/apex_septum_templates",
                         help='Provide folder with templates for LA/RA apex and septum vtx files')
+	
+    parser.add_argument('-msh', '--mesh', type=str, default='meshing/myocardium_OUT/myocardium',
+					 	help="Path to the mesh file (relative to heartFolder)")
 
     args = parser.parse_args()
 

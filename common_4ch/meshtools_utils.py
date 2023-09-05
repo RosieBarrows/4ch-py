@@ -69,7 +69,7 @@ def extract_surface_wrapper(meshname, surf_path, tag_base, to_print=False) :
 	os.system(cmd)
 
 def extract_mesh_wrapper(meshname, submesh, tag_base, to_print=False) :
-	cmd = f"meshtool extract mesh -msh={meshname} -submsh={submesh} -ofmt=vtk -tags={tag_base}"
+	cmd = f"meshtool extract mesh -msh={meshname} -submsh={submesh} -tags={tag_base}"
 	if to_print :
 		print(cmd)
 	os.system(cmd)
@@ -972,7 +972,7 @@ def meshtool_map_vtx(surf_folder):
 	ext_list = ["base.surf", "epi.surf", "lvendo.surf", "rvendo.surf", "rvendo_nosept.surf", "rvsept.surf"]
 	files_list = [f"{surf_folder}/myocardium.apex.vtx"]
 	files_list += [f"{surf_folder}/tmp/myocardium.{ext}.vtx" for ext in ext_list]
-	map_wrapper(f"{surf_folder}/BiV/BiV", ",".join(files_list), f"{surf_folder}/BiV")
+	map_wrapper(f"{surf_folder}/BiV/BiV", ",".join(files_list), f"{surf_folder}/BiV", to_print=True)
 
 	files_list = [f"{surf_folder}/tmp/myocardium.{ext}" for ext in ext_list]
 	map_wrapper(f"{surf_folder}/BiV/BiV", ",".join(files_list), f"{surf_folder}/BiV")

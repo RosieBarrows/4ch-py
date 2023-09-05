@@ -16,36 +16,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-
-def my_cp(src, dst, debug=False):
-    if debug:
-        logger.debug(f"cp {src} {dst}")
-    os.system(f"cp {src} {dst}")
-
-
-def my_mkdir(folder_path, create=True, debug=False):
-    if debug:
-        logger.debug(f"mkdir -p {folder_path}")
-    res = False
-    if os.path.exists(folder_path):
-        res = True
-    elif create:
-        os.makedirs(folder_path)
-        res = True
-    return res
-
-def my_rm(file_path, debug=False):
-    import glob 
-    if debug:
-        logger.debug(f"rm {file_path}")
-
-    flie_list = glob.glob(file_path)
-    for f in flie_list:
-        try :
-            os.remove(f)
-        except OSError:
-            logger.error(f"Error while deleting file {f}")
-
 def correct_fibres(meshname):
     """Corrects fibre orientation in the mesh"""
     logger.info('Reading mesh...')
@@ -74,23 +44,20 @@ def correct_fibres(meshname):
     np.savetxt(f"{meshname}_corrected.lon",lon_corrected,fmt="%g",header='2',comments='')
 
 
-def extract_surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myocardium", debug): 
+def extract_surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="meshing/myocardium_OUT/myocardium", debug=False): 
     """Extract surfaces from the mesh using meshtool libraries"""
 
-    mesh = f"{base_dir}/meshing/myocardium_OUT/{meshname}"
+    mesh = f"{base_dir}/{meshname}"
     surf_folder = f"{base_dir}/surfaces_uvc/"
     surf_folder_la = f"{base_dir}/surfaces_uvc_LA/"
     surf_folder_ra = f"{base_dir}/surfaces_uvc_RA/"
 
-    my_mkdir(surf_folder, debug)
-    my_mkdir(f"{surf_folder}/tmp", debug)
-    my_mkdir(f"{surf_folder}/BiV", debug)
-    my_mkdir(surf_folder_la, debug)
-    my_mkdir(f"{surf_folder_la}/tmp", debug)
-    my_mkdir(f"{surf_folder_la}/la", debug)
-    my_mkdir(surf_folder_ra, debug)
-    my_mkdir(f"{surf_folder_ra}/tmp", debug)
-    my_mkdir(f"{surf_folder_ra}/ra", debug)
+    list_of_folders = [os.path.join(surf_folder, subf) for subf in ["", "tmp", "BiV"] ]
+    list_of_folders += [os.path.join(surf_folder_la, subf) for subf in ["", "tmp", "la"] ]
+    list_of_folders += [os.path.join(surf_folder_ra, subf) for subf in ["", "tmp", "ra"] ]
+
+    for folder in list_of_folders:
+        fu.mymkdir(folder)
 
     logger.info("Extracting the base")
     meshtool_extract_base(mesh, surf_folder, input_tags_setup)
@@ -148,8 +115,8 @@ def extract_surfs(base_dir, input_tags_setup, apex_septum_setup, meshname="myoca
     meshtool_map_vtx_la(surf_folder_la)
 
     logger.info("Copying blank files for LA apex and septum ")
-    my_cp(f"{apex_septum_setup}/la.lvapex.vtx",f"{surf_folder_la}/la/la.lvapex.vtx", debug)
-    my_cp(f"{apex_septum_setup}/la.rvsept_pt.vtx", f"{surf_folder_la}/la/la.rvsept_pt.vtx", debug)
+    fu.mycp(f"{apex_septum_setup}/la.lvapex.vtx",f"{surf_folder_la}/la/la.lvapex.vtx", debug)
+    fu.mycp(f"{apex_septum_setup}/la.rvsept_pt.vtx", f"{surf_folder_la}/la/la.rvsept_pt.vtx", debug)
 
 def laplace_preparation(endo_surf_path, epi_surf_path, debug) : 
     """Prepares the mesh for the Laplace equation (outside of docker container)""" 
@@ -207,8 +174,8 @@ def surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi
                           output+"_sheet.lon")
 
     logger.info("Converting to VTK for visualisation")
-    my_cp(f"{meshname_3d}.elem", f"{output}.elem", debug)
-    my_cp(f"{meshname_3d}.pts", f"{output}.pts", debug)
+    fu.mycp(f"{meshname_3d}.elem", f"{output}.elem", debug)
+    fu.mycp(f"{meshname_3d}.pts", f"{output}.pts", debug)
 
     cmd = f"meshtool convert -imsh={output}_sheet -omsh={output}_sheet.vtk"
     if debug: logger.info(f"COMMAND: {cmd}")
@@ -217,7 +184,7 @@ def surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi
 def create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags, bb_settings, debug) : 
     """Defines the tags for the mesh"""
     # presim_folder=f"{directory}/pre_simulation"
-    my_mkdir(presim_folder, debug)
+    fu.mymkdir(presim_folder)
 
     input_tags_json = load_json(input_tags)
     bb_settings_json = load_json(bb_settings)
@@ -225,9 +192,9 @@ def create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ex
     msh="myocardium"
 
     logger.info("Setting up folder structure")
-    my_cp(f"{mesh_path_no_ext}.elem", f"{presim_folder}/{msh}.elem", debug)
-    my_cp(f"{mesh_path_no_ext}.pts", f"{presim_folder}/{msh}.pts", debug)
-    my_cp(f"{mesh_path_no_ext}.lon", f"{presim_folder}/{msh}.lon", debug)
+    fu.mycp(f"{mesh_path_no_ext}.elem", f"{presim_folder}/{msh}.elem", debug)
+    fu.mycp(f"{mesh_path_no_ext}.pts", f"{presim_folder}/{msh}.pts", debug)
+    fu.mycp(f"{mesh_path_no_ext}.lon", f"{presim_folder}/{msh}.lon", debug)
 
     msh_av = f"{msh}_av"
     msh_fec = f"{msh}_av_fec"
@@ -263,8 +230,8 @@ def create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ex
                 input_tags_json, 
                 f"{presim_folder}/{msh_bb}.elem")
     
-    my_cp(f"{presim_folder}/{msh}.pts", f"{presim_folder}/{msh_bb}.pts", debug)
-    my_cp(f"{presim_folder}/{msh}.lon", f"{presim_folder}/{msh_bb}.lon", debug)
+    fu.mycp(f"{presim_folder}/{msh}.pts", f"{presim_folder}/{msh_bb}.pts", debug)
+    fu.mycp(f"{presim_folder}/{msh}.lon", f"{presim_folder}/{msh_bb}.lon", debug)
 
     cmd = f"meshtool convert -imsh={presim_folder}/{msh_bb} -omsh={presim_folder}/{msh_bb}.vtk"
     if debug: logger.info(f"COMMAND: {cmd}")
@@ -283,16 +250,16 @@ def surf_presim(directory, la_folder, ra_folder, input_tags_settings, map_settin
     connected_component_to_surface(f"{presim_folder}/peri_surface_CC.part1", f"{presim_folder}/peri_surface.surf", f"{presim_folder}/epicardium_for_sim")
     surf2vtk(msh_path, f"{presim_folder}/epicardium_for_sim.surf", f"{presim_folder}/epicardium_for_sim.vtk") 
 
-    my_rm(f"{presim_folder}/*CC*", debug)
+    fu.myrm(f"{presim_folder}/*CC*")
 
     logger.info("Extracting the epi and LV/RV/LA/RA endo surfaces")
-    my_mkdir(f"{presim_folder}/surfaces_simulation", debug) 
+    fu.mymkdir(f"{presim_folder}/surfaces_simulation") 
     meshtool_extract_epi_endo_surfs(msh_path,presim_folder,input_tags_json)
 
-    my_rm(f"{presim_folder}/surfaces_simulation/surface_heart_CC.*", debug)
+    fu.myrm(f"{presim_folder}/surfaces_simulation/surface_heart_CC.*")
 
     logger.info("Extracting the surfaces of the rings")
-    my_mkdir(f"{presim_folder}/surfaces_simulation/surfaces_rings", debug) 
+    fu.mymkdir(f"{presim_folder}/surfaces_simulation/surfaces_rings") 
     meshtool_extract_rings(msh_path, presim_folder, input_tags_json)
 
     logger.info("Setting up the pericardium scale...")
@@ -333,8 +300,8 @@ def split_fec(directory, input_tags_setup, lvrv_tags, mesh_path_no_ext, debug=Fa
                       f"{sim_dir}/LV_endo.surf", f"{sim_dir}/RV_endo.surf",
                       f"{sim_dir}/{mshname}_lvrv.elem", original_tags_json, new_tags_json)
     
-    my_cp(f"{sim_dir}/{mshname}.pts", f"{sim_dir}/{mshname}_lvrv.pts", debug)
-    my_cp(f"{sim_dir}/{mshname}.lon", f"{sim_dir}/{mshname}_lvrv.lon", debug)
+    fu.mycp(f"{sim_dir}/{mshname}.pts", f"{sim_dir}/{mshname}_lvrv.pts", debug)
+    fu.mycp(f"{sim_dir}/{mshname}.lon", f"{sim_dir}/{mshname}_lvrv.lon", debug)
 
     cmd = f"meshtool convert -imsh={sim_dir}/{mshname}_lvrv -omsh={sim_dir}/{mshname}_lvrv.vtk"
     if debug: logger.info(f"COMMAND: {cmd}")

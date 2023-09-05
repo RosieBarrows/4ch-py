@@ -4,7 +4,7 @@ import logging
 from common_4ch.json_utils import *
 from common_4ch.meshtools_utils import *
 
-def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="myocardium", debug=False, help=False): 
+def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myocardium_OUT/myocardium", debug=False, help=False): 
     """
     Mode of operation: surfs
     Extract surfaces from the mesh using meshtool
@@ -13,7 +13,7 @@ def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="myocardium"
     --par-folder: relative path to the folder containing the par files 
     --input-tags-setup: relative path to the json file containing the input tags
     --apex-septum-setup: relative path to the folder containing the apex and septum tags
-    --meshname: name of the mesh file (default: myocardium)
+    --meshname: name of the mesh file (default: meshing/myocardium_OUT/myocardium)
 
     Usage:
     surfs --par-folder parfiles --input-tags-setup file.json --apex-septum-setup apex_septum_setup
@@ -332,7 +332,7 @@ if __name__ == '__main__':
     input_parser.add_argument("--fch-sa", metavar="parameter_files", nargs='?', type=str, help="Septal annulus file")
     input_parser.add_argument("--lvrv-tags", metavar="parameter_files", nargs='?', type=str, help="JSON file with input tags settings for split FEC")
 
-    input_parser.add_argument("--meshname", metavar="meshname", nargs='?', type=str, default="myocardium")
+    input_parser.add_argument("--meshname", metavar="meshname", nargs='?', type=str, default="meshing/myocardium_OUT/myocardium")
     input_parser.add_argument("--mesh-path", metavar="meshpath", nargs='?', type=str) 
     input_parser.add_argument("--data-subdir", metavar="datasubfolder", nargs='?', type=str, help="Subfolder containing data files (see help)")
 
