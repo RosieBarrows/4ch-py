@@ -8,18 +8,6 @@ from common_4ch.file_utils import *
 from common_4ch.distance_utils import *
 from common_4ch.mesh_utils import *
 
-def mycp(src,dst):
-	os.system(f"cp {src} {dst}")
-
-def mymv(src,dst):
-	os.system(f"mv {src} {dst}")
-
-def big_msg(msg):
-	length = len(msg)
-	print("-"*length)
-	print(msg)
-	print("-"*length)
-
 def extract_tags(tags_setup ,
 				 labels):	
 	tags_list = []
@@ -41,6 +29,57 @@ def get_tags_from_setup(tags_setup , labels):
 
 		return tags_list_string
 
+def find_and_append(list_of_files, prefix) :
+		elements = []
+		ix = 0
+		is_file = True 
+		while is_file :
+			elemname = f"{prefix}.part{ix}"
+			if f"{elemname}.elem" in list_of_files :
+				elements.append(elemname)
+			else :
+				is_file = False
+			ix += 1
+		return elements
+
+def keep_n_connected_components(cc_list, folder, keep_n=2) : 
+	print(f"Checking connected component size and keeping {keep_n} largest ...")
+	if len(cc_list) > keep_n : 
+		cc_size = np.zeros((len(cc_list),),dtype=int)
+		for i,cc in enumerate(cc_list):
+			surf = read_elem(f"{folder}/{cc}.elem",el_type="Tr",tags=False)
+			cc_size[i] = surf.shape[0]
+			
+		cc_list_old = copy.deepcopy(cc_list)
+		sorted_size = np.argsort(cc_size)
+		
+		for ix in range(keep_n) :
+			cc_list[ix] = cc_list_old[sorted_size[-ix-1]]
+		
+		for ix in range(len(cc_list)-2):
+			os.system(f"rm {folder}/{cc_list_old[sorted_size[ix]]}.*")
+	
+	return cc_list
+
+# meshtool wrappers 
+def extract_surface_wrapper(meshname, surf_path, tag_base, to_print=False) :
+	cmd = f"meshtool extract surface -msh={meshname} -surf={surf_path} -ofmt=vtk -op={tag_base}"
+	if to_print :
+		print(cmd)
+	os.system(cmd)
+
+def extract_mesh_wrapper(meshname, submesh, tag_base, to_print=False) :
+	cmd = f"meshtool extract mesh -msh={meshname} -submsh={submesh} -ofmt=vtk -tags={tag_base}"
+	if to_print :
+		print(cmd)
+	os.system(cmd)
+
+def map_wrapper(submesh, files_str, outdir, mode_str='m2s', to_print=False) : 
+	cmd = f"meshtool map -submsh={submesh} -files={files_str} -outdir={outdir} -mode={mode_str}"
+	if to_print :
+		print(cmd)
+	os.system(cmd)
+
 def meshtool_extract_biatrial(meshname,
 							  output_folder,
 							  tags_setup,
@@ -55,9 +94,7 @@ def meshtool_extract_biatrial(meshname,
 		tags_list_string = get_tags_from_setup(tags_setup,["LA","RA"])
 
 		big_msg("Extracting biatrial mesh...")
-		cmd = "meshtool extract mesh -msh="+meshname+" -submsh="+output_folder+"/biatrial/biatrial -tags="+tags_list_string
-		print(cmd)
-		os.system(cmd)
+		extract_mesh_wrapper(meshname, f"{output_folder}/biatrial/biatrial", tags_list_string, to_print=True)
 
 def meshtool_extract_LA(output_folder,
 						tags_setup,
@@ -71,9 +108,8 @@ def meshtool_extract_LA(output_folder,
 	if do:
 		tags_list_string = get_tags_from_setup(tags_setup,["LA"])
 		
-		big_msg("Extracting LA mesh from biatrial...")		
-		cmd = "meshtool extract mesh -msh="+output_folder+"/biatrial/biatrial -submsh="+output_folder+"/la/la -tags="+tags_list_string
-		os.system(cmd)
+		big_msg("Extracting LA mesh from biatrial...")	
+		extract_mesh_wrapper(f"{output_folder}/biatrial/biatrial", f"{output_folder}/la/la", tags_list_string)	
 
 def meshtool_extract_RA(output_folder,
 						tags_setup,
@@ -88,8 +124,7 @@ def meshtool_extract_RA(output_folder,
 		tags_list_string = get_tags_from_setup(tags_setup,["RA"])
 		
 		big_msg("Extracting RA mesh from biatrial...")
-		cmd = f"meshtool extract mesh -msh={output_folder}/biatrial/biatrial -submsh={output_folder}/ra/ra -tags={tags_list_string}"
-		os.system(cmd)
+		extract_mesh_wrapper(f"{output_folder}/biatrial/biatrial", f"{output_folder}/ra/ra", tags_list_string)
 
 def meshtool_extract_surfaces(meshname,
 		 					  output_folder,
@@ -233,37 +268,7 @@ def meshtool_extract_surfaces(meshname,
 	big_msg("Extracting RA surface connected components...")
 	os.system(f"meshtool extract unreachable -msh={output_folder}/tmp/ra.surfmesh.vtk -submsh={output_folder}/tmp/ra_cc -ofmt=carp_txt")
 
-	# Finish extraction of labels, moving on to the next step
-	def find_and_append(list_of_files, prefix) :
-		elements = []
-		ix = 0
-		is_file = True 
-		while is_file :
-			elemname = f"{prefix}.part{ix}"
-			if f"{elemname}.elem" in list_of_files :
-				elements.append(elemname)
-			else :
-				is_file = False
-			ix += 1
-		return elements
-	
-	def sort_and_clean(cc_list) : 
-		if len(cc_list) > 2 : 
-			cc_size = np.zeros((len(cc_list),),dtype=int)
-			for i,cc in enumerate(cc_list):
-				surf = read_elem(f"{output_folder}/tmp/{cc}.elem",el_type="Tr",tags=False)
-				cc_size[i] = surf.shape[0]
-
-			cc_list_old = copy.deepcopy(cc_list)
-			sorted_size = np.argsort(cc_size)
-			cc_list[0] = cc_list_old[sorted_size[-1]]
-			cc_list[1] = cc_list_old[sorted_size[-2]]
-
-			for i in range(len(cc_list)-2):
-				os.system(f"rm {output_folder}/tmp/{cc_list_old[sorted_size[i]]}.*")
-		
-		return cc_list
-		
+	# Finish extraction of labels, moving on to the next step			
 	def id_and_save_endo_epi(cc_list, atrium : str) : 
 		pts0 = read_pts(f"{output_folder}/tmp/{cc_list[0]}.pts")
 		surf0 = read_elem(f"{output_folder}/tmp/{cc_list[0]}.elem",el_type="Tr",tags=False)
@@ -305,13 +310,13 @@ def meshtool_extract_surfaces(meshname,
 			mymv(f"{output_folder}/tmp/{cc_list[endo]}.{f}", f"{output_folder}/tmp/{atrium.lower()}_endo.{f}")
 			mymv(f"{output_folder}/tmp/{cc_list[epi]}.{f}", f"{output_folder}/tmp/{atrium.lower()}_epi.{f}")
 	
-	tmp_files = os.listdir(output_folder+"/tmp")
+	tmp_files = os.listdir(f"{output_folder}/tmp")
 	la_cc = find_and_append(tmp_files, "la_cc")
 	ra_cc = find_and_append(tmp_files, "ra_cc")
 
 	print("Checking connected component size and keeping only the two biggest...")
-	la_cc = sort_and_clean(la_cc)
-	ra_cc = sort_and_clean(ra_cc)
+	la_cc = keep_n_connected_components(la_cc, f"{output_folder}/tmp", keep_n=2)
+	ra_cc = keep_n_connected_components(ra_cc, f"{output_folder}/tmp", keep_n=2)
 
 	id_and_save_endo_epi(la_cc, "la")
 	id_and_save_endo_epi(ra_cc, "ra")
@@ -340,12 +345,10 @@ def export_LA_vtk_msh(output_folder,
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/biatrial/biatrial -files="+surface_list_string+" -outdir="+output_folder+"/biatrial/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/biatrial/biatrial", surface_bia_list_string, f"{output_folder}/biatrial/", mode_str='m2s')
 
 	print('Mapping surfaces onto LA mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/la/la -files="+surface_bia_list_string+" -outdir="+output_folder+"/la/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/la/la", surface_bia_list_string, f"{output_folder}/la/", mode_str='m2s')
 
 	la_tr = read_elem(output_folder+"/la/la.surf",el_type="Tr",tags=False)
 
@@ -403,12 +406,10 @@ def export_vtk_meshes_caroline(output_folder,
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = f"meshtool map -submsh={output_folder}/biatrial/biatrial -files={surface_list_string} -outdir={output_folder}/biatrial/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/biatrial/biatrial", surface_list_string, f"{output_folder}/biatrial/", mode_str='m2s')
 
 	print('Mapping surfaces onto LA mesh...')
-	cmd = f"meshtool map -submsh={output_folder}/la/la -files={surface_bia_list_string} -outdir={output_folder}/la/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/la/la", surface_bia_list_string, f"{output_folder}/la/", mode_str='m2s')
 
 	la_tr = read_elem(output_folder+"/la/la.surf",el_type="Tr",tags=False)
 
@@ -435,12 +436,10 @@ def export_vtk_meshes_caroline(output_folder,
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = f"meshtool map -submsh={output_folder}/biatrial/biatrial -files={surface_list_string} -outdir={output_folder}/biatrial/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/biatrial/biatrial", surface_list_string, f"{output_folder}/biatrial/", mode_str='m2s')
 
 	print('Mapping surfaces onto RA mesh...')
-	cmd = f"meshtool map -submsh={output_folder}/ra/ra -files={surface_bia_list_string} -outdir={output_folder}/ra/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/ra/ra", surface_bia_list_string, f"{output_folder}/ra/", mode_str='m2s')
 
 	ra_tr = read_elem(output_folder+"/ra/ra.surf",el_type="Tr",tags=False)
 
@@ -484,20 +483,6 @@ def export_vtk_meshes_caroline(output_folder,
 	for a in ["la","ra"]:
 		for l in ["endo","epi"]:
 			os.system(f"meshtool convert -imsh={output_folder}/tmp/{a}_{l} -ofmt=vtk_polydata -omsh={output_folder}/{a.upper()}_{l}/{a.upper()}_{l}")
-
-	# os.system("meshtool convert -imsh="+output_folder+"/tmp/la_endo -ofmt=vtk_polydata -omsh="+output_folder+"/LA_endo/LA_endo")
-	# os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_endo -ofmt=vtk_polydata -omsh="+output_folder+"/RA_endo/RA_endo")
-	# mycp(os.path.join(output_folder,"la","prodLaLandmarks.txt"), os.path.join(output_folder,"LA_endo/"))
-	# mycp(os.path.join(output_folder,"la","prodLaRegion.txt"), os.path.join(output_folder,"LA_endo/"))
-	# mycp(os.path.join(output_folder,"ra","prodRaLandmarks.txt"), os.path.join(output_folder,"RA_endo/"))
-	# mycp(os.path.join(output_folder,"ra","prodRaRegion.txt"), os.path.join(output_folder,"RA_endo/"))
-
-	# os.system("meshtool convert -imsh="+output_folder+"/tmp/la_epi -ofmt=vtk_polydata -omsh="+output_folder+"/LA_epi/LA_epi")
-	# os.system("meshtool convert -imsh="+output_folder+"/tmp/ra_epi -ofmt=vtk_polydata -omsh="+output_folder+"/RA_epi/RA_epi")
-	# mycp(os.path.join(output_folder,"la","prodLaLandmarks.txt"), os.path.join(output_folder,"LA_epi/"))
-	# mycp(os.path.join(output_folder,"la","prodLaRegion.txt"), os.path.join(output_folder,"LA_epi/"))
-	# mycp(os.path.join(output_folder,"ra","prodRaLandmarks.txt"), os.path.join(output_folder,"RA_epi/"))
-	# mycp(os.path.join(output_folder,"ra","prodRaRegion.txt"), os.path.join(output_folder,"RA_epi/"))
 
 def recompute_raa_base(output_folder,
 					   raa_apex_file,
@@ -547,12 +532,10 @@ def export_RA_vtk_msh(output_folder,
 	surface_bia_list_string = ','.join(surface_bia_list)
 
 	print('Mapping surfaces onto biatrial mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/biatrial/biatrial -files="+surface_list_string+" -outdir="+output_folder+"/biatrial/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/biatrial/biatrial", surface_list_string, f"{output_folder}/biatrial/", mode_str='m2s')
 
 	print('Mapping surfaces onto RA mesh...')
-	cmd = "meshtool map -submsh="+output_folder+"/ra/ra -files="+surface_bia_list_string+" -outdir="+output_folder+"/ra/ -mode=m2s"
-	os.system(cmd)
+	map_wrapper(f"{output_folder}/ra/ra", surface_bia_list_string, f"{output_folder}/ra/", mode_str='m2s')
 
 	ra_tr = read_elem(output_folder+"/ra/ra.surf",el_type="Tr",tags=False)
 
@@ -604,7 +587,8 @@ def meshtool_extract_base(mesh,surf_folder,input_tags):
 	tags_list_vent_string = get_tags_from_setup(input_tags, ["LV","RV"])
 	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/myocardium.base -ofmt=vtk -op="+tags_list_vent_string+":"+tags_list_VPs_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/myocardium.base", f"{tags_list_vent_string}:{tags_list_VPs_string}")
+
 
 def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 
@@ -612,35 +596,12 @@ def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 	tags_list_vent_string = get_tags_from_setup(input_tags, ["LV","RV"])
 	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_vent_string+"-"+tags_list_VPs_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/epi_endo", f"{tags_list_vent_string}-{tags_list_VPs_string}")
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
 
-	tmp_files = os.listdir(surf_folder+"/tmp")
-	epi_endo_CC = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "epi_endo_CC.part"+str(i)+".elem" in tmp_files:
-			epi_endo_CC.append("epi_endo_CC.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
-
-	print("Checking connected component size and keeping only the 3 biggest...")
-	if len(epi_endo_CC)>3:
-		CC_size = np.zeros((len(epi_endo_CC),),dtype=int)
-		for i,CC in enumerate(epi_endo_CC):
-			surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
-
-		epi_endo_CC_old = copy.deepcopy(epi_endo_CC)
-		sorted_size = np.argsort(CC_size)
-		epi_endo_CC[0] = epi_endo_CC_old[sorted_size[-1]]
-		epi_endo_CC[1] = epi_endo_CC_old[sorted_size[-2]]
-		epi_endo_CC[2] = epi_endo_CC_old[sorted_size[-3]]
-
-		for i in range(len(epi_endo_CC)-3):
-			os.system("rm "+surf_folder+"/tmp/"+epi_endo_CC_old[sorted_size[i]]+".*")
+	tmp_files = os.listdir(f"{surf_folder}/tmp")
+	epi_endo_CC = find_and_append(tmp_files, "epi_endo_CC")
+	epi_endo_CC = keep_n_connected_components(epi_endo_CC, f"{surf_folder}/tmp", keep_n=3)
 
 	# Find CoGs of surfaces
 	pts0 = read_pts(surf_folder+"/tmp/"+epi_endo_CC[0]+".pts")
@@ -805,19 +766,11 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
 	tags_list_remove_string = get_tags_from_setup(input_tags, ["RV","RA","PArt"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/myocardium.rvsept -ofmt=vtk -op="+tags_list_lv_string+"-"+tags_list_remove_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/myocardium.rvsept", f"{tags_list_lv_string}-{tags_list_remove_string}")
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/myocardium.rvsept.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/myocardium.rvsept_CC")
 
 	tmp_files = os.listdir(surf_folder+"/tmp")
-	rvsept_CC = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "myocardium.rvsept_CC.part"+str(i)+".elem" in tmp_files:
-			rvsept_CC.append("myocardium.rvsept_CC.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
+	rvsept_CC = find_and_append(tmp_files, "myocardium.rvsept_CC")
 
 	print("Checking connected component size and keeping only the 2 biggest...")
 	CC_size = np.zeros((len(rvsept_CC),),dtype=int)
@@ -838,8 +791,8 @@ def meshtool_extract_septum(mesh,surf_folder,input_tags):
 	print('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
 	for f in formats:
-		os.system("mv "+surf_folder+"/tmp/"+rvsept_CC[0]+"."+f+" "+surf_folder+"/tmp/lvepi."+f)
-		os.system("mv "+surf_folder+"/tmp/"+rvsept_CC[1]+"."+f+" "+surf_folder+"/tmp/myocardium.rvsept."+f)
+		mymv(f"{surf_folder}/tmp/{rvsept_CC[0]}.{f}", f"{surf_folder}/tmp/lvepi.{f}")
+		mymv(f"{surf_folder}/tmp/{rvsept_CC[1]}.{f}", f"{surf_folder}/tmp/myocardium.rvsept.{f}")
 
 def meshtool_extract_la_base(mesh,surf_folder,input_tags):
 
@@ -847,7 +800,7 @@ def meshtool_extract_la_base(mesh,surf_folder,input_tags):
 	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
 	tags_list_mv_string = get_tags_from_setup(input_tags, ["MV"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/la.base -ofmt=vtk -op="+tags_list_la_string+":"+tags_list_mv_string+","+tags_list_lv_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/la.base", f"{tags_list_la_string}:{tags_list_mv_string},{tags_list_lv_string}")
 
 def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
 
@@ -856,34 +809,12 @@ def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
 	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
 	tags_list_rings_string = get_tags_from_setup(input_tags, ["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_la_string+"-"+tags_list_lv_string+","+tags_list_VPs_string+","+tags_list_rings_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/epi_endo", f"{tags_list_la_string}-{tags_list_lv_string},{tags_list_VPs_string},{tags_list_rings_string}")
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
 
-	tmp_files = os.listdir(surf_folder+"/tmp")
-	epi_endo_CC = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "epi_endo_CC.part"+str(i)+".elem" in tmp_files:
-			epi_endo_CC.append("epi_endo_CC.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
-
-	print("Checking connected component size and keeping only the 2 biggest...")
-	if len(epi_endo_CC)>2:
-		CC_size = np.zeros((len(epi_endo_CC),),dtype=int)
-		for i,CC in enumerate(epi_endo_CC):
-			surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
-
-		epi_endo_CC_old = copy.deepcopy(epi_endo_CC)
-		sorted_size = np.argsort(CC_size)
-		epi_endo_CC[0] = epi_endo_CC_old[sorted_size[-1]]
-		epi_endo_CC[1] = epi_endo_CC_old[sorted_size[-2]]
-
-		for i in range(len(epi_endo_CC)-2):
-			os.system("rm "+surf_folder+"/tmp/"+epi_endo_CC_old[sorted_size[i]]+".*")
+	tmp_files = os.listdir(f"{surf_folder}/tmp")
+	epi_endo_CC = find_and_append(tmp_files, "epi_endo_CC")
+	epi_endo_CC = keep_n_connected_components(epi_endo_CC, f"{surf_folder}/tmp", keep_n=2)
 
 	# Find CoGs of surfaces
 	pts0 = read_pts(surf_folder+"/tmp/"+epi_endo_CC[0]+".pts")
@@ -926,15 +857,16 @@ def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
 	print('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
 	for f in formats:
-		os.system("mv "+surf_folder+"/tmp/"+epi_endo_CC[epi]+"."+f+" "+surf_folder+"/tmp/la.epi."+f)
-		os.system("mv "+surf_folder+"/tmp/"+epi_endo_CC[endo]+"."+f+" "+surf_folder+"/tmp/la.lvendo."+f)
+		mymv(f"{surf_folder}/tmp/{epi_endo_CC[epi]}.{f}", f"{surf_folder}/tmp/la.epi.{f}")
+		mymv(f"{surf_folder}/tmp/{epi_endo_CC[endo]}.{f}", f"{surf_folder}/tmp/la.lvendo.{f}")
 
 def meshtool_extract_ra_base(mesh,surf_folder,input_tags):
 	tags_list_ra_string = get_tags_from_setup(input_tags, ["RA"])
 	tags_list_rv_string = get_tags_from_setup(input_tags, ["RV"])
 	tags_list_tv_string = get_tags_from_setup(input_tags, ["TV"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/ra.base -ofmt=vtk -op="+tags_list_ra_string+":"+tags_list_tv_string+","+tags_list_tv_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/ra.base", f"{tags_list_ra_string}:{tags_list_tv_string},{tags_list_tv_string}")
+	
 
 def meshtool_extract_ra_surfaces(mesh,surf_folder,input_tags):
 	tags_list_ra_string = get_tags_from_setup(input_tags, ["RA"])
@@ -942,34 +874,12 @@ def meshtool_extract_ra_surfaces(mesh,surf_folder,input_tags):
 	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV","LSPV","LIPV","RSPV","RIPV","LAA","SVC","IVC"])
 	tags_list_rings_string = get_tags_from_setup(input_tags, ["LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","LAA_ring","SVC_ring","IVC_ring"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+surf_folder+"/tmp/epi_endo -ofmt=vtk -op="+tags_list_ra_string+"-"+tags_list_rv_string+","+tags_list_VPs_string+","+tags_list_rings_string)
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/epi_endo", f"{tags_list_ra_string}-{tags_list_rv_string},{tags_list_VPs_string},{tags_list_rings_string}")
 	os.system("meshtool extract unreachable -msh="+surf_folder+"/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh="+surf_folder+"/tmp/epi_endo_CC")
 
-	tmp_files = os.listdir(surf_folder+"/tmp")
-	epi_endo_CC = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "epi_endo_CC.part"+str(i)+".elem" in tmp_files:
-			epi_endo_CC.append("epi_endo_CC.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
-
-	print("Checking connected component size and keeping only the 2 biggest...")
-	if len(epi_endo_CC)>2:
-		CC_size = np.zeros((len(epi_endo_CC),),dtype=int)
-		for i,CC in enumerate(epi_endo_CC):
-			surf = read_elem(surf_folder+"/tmp/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
-
-		epi_endo_CC_old = copy.deepcopy(epi_endo_CC)
-		sorted_size = np.argsort(CC_size)
-		epi_endo_CC[0] = epi_endo_CC_old[sorted_size[-1]]
-		epi_endo_CC[1] = epi_endo_CC_old[sorted_size[-2]]
-
-		for i in range(len(epi_endo_CC)-2):
-			os.system("rm "+surf_folder+"/tmp/"+epi_endo_CC_old[sorted_size[i]]+".*")
+	tmp_files = os.listdir(f"{surf_folder}/tmp")
+	epi_endo_CC = find_and_append(tmp_files, "epi_endo_CC")
+	epi_endo_CC = keep_n_connected_components(epi_endo_CC, f"{surf_folder}/tmp", keep_n=2)
 
 	# Find CoGs of surfaces
 	pts0 = read_pts(surf_folder+"/tmp/"+epi_endo_CC[0]+".pts")
@@ -1012,8 +922,8 @@ def meshtool_extract_ra_surfaces(mesh,surf_folder,input_tags):
 	print('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
 	for f in formats:
-		os.system("mv "+surf_folder+"/tmp/"+epi_endo_CC[epi]+"."+f+" "+surf_folder+"/tmp/ra.epi."+f)
-		os.system("mv "+surf_folder+"/tmp/"+epi_endo_CC[endo]+"."+f+" "+surf_folder+"/tmp/ra.lvendo."+f)
+		mymv(f"{surf_folder}/tmp/{epi_endo_CC[epi]}.{f}", f"{surf_folder}/tmp/ra.epi.{f}")
+		mymv(f"{surf_folder}/tmp/{epi_endo_CC[endo]}.{f}", f"{surf_folder}/tmp/ra.lvendo.{f}")
 
 def mapping_surfaces(mesh,surf_folder,input_tags):
 	connected_component_to_surface(surf_folder+'/tmp/myocardium.epi',surf_folder+'/tmp/epi_endo.surf',surf_folder+'/tmp/myocardium.epi')
@@ -1056,71 +966,56 @@ def meshtool_extract_biv(mesh,surf_folder,input_tags):
 	tags_list_lv_string = get_tags_from_setup(input_tags, ["LV"])
 	tags_list_rv_string = get_tags_from_setup(input_tags, ["RV"])
 
-	os.system("meshtool extract mesh -msh="+mesh+" -submsh="+surf_folder+"/BiV/BiV -tags="+tags_list_lv_string+","+tags_list_rv_string)
+	extract_mesh_wrapper(mesh, f"{surf_folder}/BiV/BiV", f"{tags_list_lv_string},{tags_list_rv_string}")
 
 def meshtool_map_vtx(surf_folder):
-	os.system("meshtool map -submsh="+surf_folder+"/BiV/BiV"
-				  			+" -files="+surf_folder+"/myocardium.apex.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.base.surf.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.epi.surf.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.lvendo.surf.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.rvendo.surf.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.rvendo_nosept.surf.vtx,"
-				  					   +surf_folder+"/tmp/myocardium.rvsept.surf.vtx"
-				  			+" -outdir="+surf_folder+"/BiV")
+	ext_list = ["base.surf", "epi.surf", "lvendo.surf", "rvendo.surf", "rvendo_nosept.surf", "rvsept.surf"]
+	files_list = [f"{surf_folder}/myocardium.apex.vtx"]
+	files_list += [f"{surf_folder}/tmp/myocardium.{ext}.vtx" for ext in ext_list]
+	map_wrapper(f"{surf_folder}/BiV/BiV", ",".join(files_list), f"{surf_folder}/BiV")
 
-	os.system("meshtool map -submsh="+surf_folder+"/BiV/BiV"
-				  			+" -files="+surf_folder+"/tmp/myocardium.base.surf,"
-				  					   +surf_folder+"/tmp/myocardium.epi.surf,"
-				  					   +surf_folder+"/tmp/myocardium.lvendo.surf,"
-				  					   +surf_folder+"/tmp/myocardium.rvendo.surf,"
-				  					   +surf_folder+"/tmp/myocardium.rvendo_nosept.surf,"
-				  					   +surf_folder+"/tmp/myocardium.rvsept.surf" 
-				  			+" -outdir="+surf_folder+"/BiV")
+	files_list = [f"{surf_folder}/tmp/myocardium.{ext}" for ext in ext_list]
+	map_wrapper(f"{surf_folder}/BiV/BiV", ",".join(files_list), f"{surf_folder}/BiV")
+
 
 def renaming_myo_files(surf_folder):
-	os.system("mv "+surf_folder+"/BiV/myocardium.base.surf "+surf_folder+"/BiV/BiV.base.surf")
-	os.system("mv "+surf_folder+"/BiV/myocardium.apex.vtx "+surf_folder+"/BiV/BiV.apex.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.base.surf.vtx "+surf_folder+"/BiV/BiV.base.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.epi.surf "+surf_folder+"/BiV/BiV.epi.surf")
-	os.system("mv "+surf_folder+"/BiV/myocardium.epi.surf.vtx "+surf_folder+"/BiV/BiV.epi.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.lvendo.surf "+surf_folder+"/BiV/BiV.lvendo.surf")
-	os.system("mv "+surf_folder+"/BiV/myocardium.lvendo.surf.vtx "+surf_folder+"/BiV/BiV.lvendo.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvendo.surf "+surf_folder+"/BiV/BiV.rvendo.surf")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvendo.surf.vtx "+surf_folder+"/BiV/BiV.rvendo.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvendo_nosept.surf.vtx "+surf_folder+"/BiV/BiV.rvendo_nosept.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvendo_nosept.surf "+surf_folder+"/BiV/BiV.rvendo_nosept.surf")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvsept.surf.vtx "+surf_folder+"/BiV/BiV.rvsept.surf.vtx")
-	os.system("mv "+surf_folder+"/BiV/myocardium.rvsept.surf "+surf_folder+"/BiV/BiV.rvsept.surf")
+	list_of_extensions = [
+		"apex.vtx", 
+		"base.surf",  
+		"epi.surf",  
+		"lvendo.surf", 
+		"rvendo.surf", 
+		"rvendo_nosept.surf", 
+		"rvsept.surf", 
+	]
+
+	for ix, ext in enumerate(list_of_extensions):
+		mymv(f"{surf_folder}/BiV/myocardium.{ext}", f"{surf_folder}/BiV/BiV.{ext}")
+		if ix > 0 :
+			mymv(f"{surf_folder}/BiV/myocardium.{ext}.vtx", f"{surf_folder}/BiV/BiV.{ext}.vtx")
 
 def meshtool_extract_la_for_UVCs(mesh,surf_folder,input_tags):
 	tags_list_la = extract_tags(input_tags,["LA"])
 	tags_list_la_string = str(tags_list_la[0])
-	os.system("meshtool extract mesh -msh="+mesh+" -submsh="+surf_folder+"/la/la -tags="+tags_list_la_string)
+	extract_mesh_wrapper(mesh, f"{surf_folder}/la/la", f"{tags_list_la_string}")
 
 def meshtool_map_vtx_la(surf_folder):
-	os.system("meshtool map -submsh="+surf_folder+"/la/la"
-							+" -files="+surf_folder+"/tmp/la.apex.vtx,"
-									   +surf_folder+"/tmp/la.base.surf.vtx,"
-									   +surf_folder+"/tmp/la.epi.vtx,"
-									   +surf_folder+"/tmp/la.lvendo.vtx"
-							+" -outdir="+surf_folder+"/la")
+	ext_list = ["apex.vtx", "base.surf.vtx", "epi.vtx", "lvendo.vtx"]
+	files_list = [f"{surf_folder}/tmp/la.{ext}" for ext in ext_list]
 
+	map_wrapper(f"{surf_folder}/la/la", ",".join(files_list), f"{surf_folder}/la")
 	os.system("meshtool convert -imsh="+surf_folder+"/la/la -omsh="+surf_folder+"/la/la -ofmt=vtk_bin")
 
 def meshtool_extract_ra_for_UVCs(mesh,surf_folder,input_tags):
 	tags_list_ra = extract_tags(input_tags,["RA"])
 	tags_list_ra_string = str(tags_list_ra[0])
-	os.system("meshtool extract mesh -msh="+mesh+" -submsh="+surf_folder+"/ra/ra -tags="+tags_list_ra_string)
+	extract_mesh_wrapper(mesh, f"{surf_folder}/ra/ra", f"{tags_list_ra_string}")
 
 def meshtool_map_vtx_ra(surf_folder):
-	os.system("meshtool map -submsh="+surf_folder+"/ra/ra" 
-						  " -files="+surf_folder+"/tmp/ra.apex.vtx,"
-						  			+surf_folder+"/tmp/ra.base.surf.vtx,"
-						  			+surf_folder+"/tmp/ra.epi.vtx,"
-						  			+surf_folder+"/tmp/ra.lvendo.vtx"
-						  " -outdir="+surf_folder+"/ra")
+	ext_list = ["apex.vtx", "base.surf.vtx", "epi.vtx", "lvendo.vtx"]
+	files_list = [f"{surf_folder}/tmp/ra.{ext}" for ext in ext_list]
 
+	map_wrapper(f"{surf_folder}/ra/ra", ",".join(files_list), f"{surf_folder}/ra")
 	os.system("meshtool convert -imsh="+surf_folder+"/ra/ra -omsh="+surf_folder+"/ra/ra -ofmt=vtk_bin")
 
 
@@ -1134,172 +1029,74 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 											 	  "LAA_ring","SVC_ring","IVC_ring",
 											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=vtk -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
+	extract_surface_wrapper(mesh, f"{presimFolder}/peri_surface", f"{tags_list_peri_string}-{tags_list_not_peri_string}")
 	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
 
 def meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags):
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"surfaces_simulation/surface_heart -ofmt=carp_txt")
 	os.system("meshtool extract unreachable -msh="+presimFolder+"surfaces_simulation/surface_heart.surfmesh -submsh="+presimFolder+"surfaces_simulation/surface_heart_CC -ofmt=carp_txt")
 
-	tmp_files = os.listdir(presimFolder+"/surfaces_simulation/")
-	surf_heart_CC = []
-	i = 0
-	isfile=True
-	while isfile:
-		if "surface_heart_CC.part"+str(i)+".elem" in tmp_files:
-			surf_heart_CC.append("surface_heart_CC.part"+str(i))
-		else: 
-			isfile = False
-		i += 1
+	tmp_files = os.listdir(f"{presimFolder}/surfaces_simulation/")
+	surf_heart_CC = find_and_append(tmp_files, "surface_heart_CC")
+	surf_heart_CC = keep_n_connected_components(surf_heart_CC, f"{presimFolder}/surfaces_simulation", keep_n=5)
 
-	print("Checking connected component size and keeping only the 5 biggest...")
-	if len(surf_heart_CC)>5:
-		CC_size = np.zeros((len(surf_heart_CC),),dtype=int)
-		for i,CC in enumerate(surf_heart_CC):
-			surf = read_elem(presimFolder+"/surfaces_simulation/"+CC+".elem",el_type="Tr",tags=False)
-			CC_size[i] = surf.shape[0]
+	surfs = []
+	pts = []
+	surf_cogs = []
 
-		surf_heart_CC_old = copy.deepcopy(surf_heart_CC)
-		sorted_size = np.argsort(CC_size)
-		surf_heart_CC[0] = surf_heart_CC_old[sorted_size[-1]]
-		surf_heart_CC[1] = surf_heart_CC_old[sorted_size[-2]]
-		surf_heart_CC[2] = surf_heart_CC_old[sorted_size[-3]]
-		surf_heart_CC[3] = surf_heart_CC_old[sorted_size[-4]]
-		surf_heart_CC[4] = surf_heart_CC_old[sorted_size[-5]]
+	for name in surf_heart_CC: 
+		surf_ix = read_elem(f"{presimFolder}/surfaces_simulation/{name}.elem", el_type="Tr", tags=False)
+		pts_ix = read_pts(f"{presimFolder}/surfaces_simulation/{name}.pts")
 
-		for i in range(len(surf_heart_CC)-5):
-			print("Removing extraneous surfaces...")
-			os.system("rm "+presimFolder+"/surfaces_simulation/"+surf_heart_CC_old[sorted_size[i]]+".*")
-
-	surf0 = read_elem(presimFolder+"/surfaces_simulation/"+surf_heart_CC[0]+".elem",el_type="Tr",tags=False)
-	surf1 = read_elem(presimFolder+"/surfaces_simulation/"+surf_heart_CC[1]+".elem",el_type="Tr",tags=False)
-	surf2 = read_elem(presimFolder+"/surfaces_simulation/"+surf_heart_CC[2]+".elem",el_type="Tr",tags=False)
-	surf3 = read_elem(presimFolder+"/surfaces_simulation/"+surf_heart_CC[3]+".elem",el_type="Tr",tags=False)
-	surf4 = read_elem(presimFolder+"/surfaces_simulation/"+surf_heart_CC[4]+".elem",el_type="Tr",tags=False)
+		surfs.append(surf_ix)
+		pts.append(pts_ix)
+		surf_cogs.append(find_cog_surf(pts_ix))
 	
-	surfs = [surf0,surf1,surf2,surf3,surf4]
-
-	pts0 = read_pts(presimFolder+"/surfaces_simulation/"+surf_heart_CC[0]+".pts")
-	pts1 = read_pts(presimFolder+"/surfaces_simulation/"+surf_heart_CC[1]+".pts")
-	pts2 = read_pts(presimFolder+"/surfaces_simulation/"+surf_heart_CC[2]+".pts")
-	pts3 = read_pts(presimFolder+"/surfaces_simulation/"+surf_heart_CC[3]+".pts")
-	pts4 = read_pts(presimFolder+"/surfaces_simulation/"+surf_heart_CC[4]+".pts")
-
-	pts = [pts0,pts1,pts2,pts3,pts4]
-
-	# Find CoGs of surfaces
-	cog0 = find_cog_surf(pts[0])
-	cog1 = find_cog_surf(pts[1])
-	cog2 = find_cog_surf(pts[2])
-	cog3 = find_cog_surf(pts[3])
-	cog4 = find_cog_surf(pts[4])
-
-	surf_cogs = [cog0,cog1,cog2,cog3,cog4]
-
 	print("Finding the centre of gravity of each blood pool...")
 	mesh_pts = read_pts(mesh+".pts")
 	mesh_elem = read_elem(mesh+".elem",el_type="Tt",tags=True)
 
-	lv_tag = extract_tags(input_tags,["LV"])
-	cog_lv = find_cog_vol(mesh_pts,mesh_elem,lv_tag[0])
-	print("LV centre of gravity found.")
-
-	rv_tag = extract_tags(input_tags,["RV"])
-	cog_rv = find_cog_vol(mesh_pts,mesh_elem,rv_tag[0])
-	print("RV centre of gravity found.")
-
-	la_tag = extract_tags(input_tags,["LA"])
-	cog_la = find_cog_vol(mesh_pts,mesh_elem,la_tag[0])
-	print("LA centre of gravity found.")
-
-	ra_tag = extract_tags(input_tags,["RA"])
-	cog_ra = find_cog_vol(mesh_pts,mesh_elem,ra_tag[0])
-	print("RA centre of gravity found.")
-
-	print("Searching for the epicardium by checking the direction of surface normals...")
+	surfaces_ids = []
 	surf_orientated_out = False
 	i = 0
 	while surf_orientated_out == False:
 		surf_orientated_out = query_outwards_surf(surfs[i],pts[i],surf_cogs[i])
 		if surf_orientated_out == True:
-			print("		"+surf_heart_CC[i]+' is the epicardium')
+			print(f"		{surf_heart_CC[i]} is the epicardium")
 			ID_epi = i
 		i += 1
-
 	remaining_surf_list = list(range(5))
 	remaining_surf_list.remove(ID_epi)
 
-	surf_dist = []
-	print("Finding distance between surf CoGs and LV CoG...")
-	for i in remaining_surf_list:
-		dist = calculate_dist(surf_cogs[i],cog_lv)
-		surf_dist.append(dist)
+	surfaces_ids.append((ID_epi,"epicardium"))
 
-	idx_ID_lv = np.argmin(surf_dist)
-	ID_lv = remaining_surf_list[idx_ID_lv]
-	print("		"+surf_heart_CC[ID_lv]+' is the LV endocardium')
-	remaining_surf_list.remove(ID_lv)
+	tag_names = ["LV","RV","LA"] # "RA" is appended at the end 
+	for tag in tag_names: 
+		this_tag = extract_tags(input_tags,[tag])
+		this_cog = find_cog_vol(mesh_pts,mesh_elem,this_tag[0])
+		print(f"		{tag} centre of gravity found.")
+		
+		surf_dist = []
+		print(f"Finding distance between surf CoGs and {tag} CoG...")
+		for i in remaining_surf_list:
+			dist = calculate_dist(surf_cogs[i],this_cog)
+			surf_dist.append(dist)
+		
+		idx_ID = np.argmin(surf_dist)
+		ID = remaining_surf_list[idx_ID]
+		print(f"		{surf_heart_CC[ID]} is the {tag} endocardium")
+		remaining_surf_list.remove(ID)
+		surfaces_ids.append((ID,f"{tag}_endo"))
 
-	surf_dist = []
-	print("Finding distance between surf CoGs and RV CoG...")
-	for i in remaining_surf_list:
-		dist = calculate_dist(surf_cogs[i],cog_rv)
-		surf_dist.append(dist)
-
-	idx_ID_rv = np.argmin(surf_dist)
-	ID_rv = remaining_surf_list[idx_ID_rv]
-	print("		"+surf_heart_CC[ID_rv]+' is the RV endocardium')
-	remaining_surf_list.remove(ID_rv)
-
-	surf_dist = []
-	print("Finding distance between surf CoGs and LA CoG...")
-	for i in remaining_surf_list:
-		dist = calculate_dist(surf_cogs[i],cog_la)
-		surf_dist.append(dist)
-
-	idx_ID_la = np.argmin(surf_dist)
-	ID_la = remaining_surf_list[idx_ID_la]
-	print("		"+surf_heart_CC[ID_la]+' is the LA endocardium')
-	remaining_surf_list.remove(ID_la)
-
-	print("And therefore...")
-	ID_ra = remaining_surf_list[0]
-	print("		"+surf_heart_CC[ID_ra]+' is the RA endocardium')
-
-	connected_component_to_surface(presimFolder+"/surfaces_simulation/"+surf_heart_CC[ID_epi],
-								   presimFolder+"/surfaces_simulation/surface_heart.surf",
-								   presimFolder+"/surfaces_simulation/epicardium")
-	surf2vtk(mesh,
-			 presimFolder+"/surfaces_simulation/epicardium.surf",
-			 presimFolder+"/surfaces_simulation/epicardium.surf.vtk")
-
-	connected_component_to_surface(presimFolder+"/surfaces_simulation/"+surf_heart_CC[ID_lv],
-								   presimFolder+"/surfaces_simulation/surface_heart.surf",
-								   presimFolder+"/surfaces_simulation/LV_endo")
-	surf2vtk(mesh,
-			 presimFolder+"/surfaces_simulation/LV_endo.surf",
-			 presimFolder+"/surfaces_simulation/LV_endo.surf.vtk")
-
-	connected_component_to_surface(presimFolder+"/surfaces_simulation/"+surf_heart_CC[ID_rv],
-								   presimFolder+"/surfaces_simulation/surface_heart.surf",
-								   presimFolder+"/surfaces_simulation/RV_endo")
-	surf2vtk(mesh,
-			 presimFolder+"/surfaces_simulation/RV_endo.surf",
-			 presimFolder+"/surfaces_simulation/RV_endo.surf.vtk")
-
-	connected_component_to_surface(presimFolder+"/surfaces_simulation/"+surf_heart_CC[ID_la],
-								   presimFolder+"/surfaces_simulation/surface_heart.surf",
-								   presimFolder+"/surfaces_simulation/LA_endo")
-	surf2vtk(mesh,
-			 presimFolder+"/surfaces_simulation/LA_endo.surf",
-			 presimFolder+"/surfaces_simulation/LA_endo.surf.vtk")
-
-	connected_component_to_surface(presimFolder+"/surfaces_simulation/"+surf_heart_CC[ID_ra],
-								   presimFolder+"/surfaces_simulation/surface_heart.surf",
-								   presimFolder+"/surfaces_simulation/RA_endo")
-	surf2vtk(mesh,
-			 presimFolder+"/surfaces_simulation/RA_endo.surf",
-			 presimFolder+"/surfaces_simulation/RA_endo.surf.vtk")
+	print(f"And therefore...{remaining_surf_list[0]} is the RA endocardium")
+	surfaces_ids.append((remaining_surf_list[0], "RA_endo"))
+	
+	opath = os.path.join(presimFolder,"surfaces_simulation")
+	for surf_id, name in surfaces_ids:
+		connected_component_to_surface(f"{opath}/{surf_heart_CC[surf_id]}", 
+								 f"{opath}/surface_heart.surf",
+								 f"{opath}/{name}")
+		surf2vtk(mesh, f"{opath}/{name}.surf", f"{opath}/{name}.surf.vtk")
 
 def meshtool_extract_rings(mesh,presimFolder,input_tags):
 	print("Extracting the RSPV ring and RIPV ring for use as boundary conditions...")
@@ -1313,7 +1110,7 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LAA_ring","SVC_ring","IVC_ring",
 											   "LSPV_ring","LIPV_ring"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/RPVs -ofmt=vtk -op="+tags_list_rpv_rings_string+"-"+tags_list_other_string)
+	extract_surface_wrapper(mesh, f"{presimFolder}/surfaces_simulation/surfaces_rings/RPVs", f"{tags_list_rpv_rings_string}-{tags_list_other_string}")
 
 	print("Extracting the SVC ring for use as a boundary condition...")
 	tags_list_svc_ring_string = get_tags_from_setup(input_tags,["SVC_ring"])
@@ -1325,7 +1122,7 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LAA_ring","IVC_ring",
 											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/SVC -ofmt=vtk -op="+tags_list_svc_ring_string+"-"+tags_list_other_string)
+	extract_surface_wrapper(mesh, f"{presimFolder}/surfaces_simulation/surfaces_rings/SVC", f"{tags_list_svc_ring_string}-{tags_list_other_string}")
 
 	print("Converting necessary surfs to vtx files...")
 	rpvs_surface = np.loadtxt(presimFolder+"/surfaces_simulation/surfaces_rings/RPVs.surf",dtype=int,skiprows=1,usecols=[1,2,3])

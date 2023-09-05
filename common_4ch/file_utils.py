@@ -16,6 +16,18 @@ class NumpyEncoder(json.JSONEncoder):
 			return obj.tolist()
 		return json.JSONEncoder.default(self, obj)
 
+def mycp(src,dst):
+	os.system(f"cp {src} {dst}")
+
+def mymv(src,dst):
+	os.system(f"mv {src} {dst}")
+
+def big_msg(msg):
+	length = len(msg)
+	print("-"*length)
+	print(msg)
+	print("-"*length)
+	
 def read_pts(filename):
 	print('Reading '+filename+'...')
 	return np.loadtxt(filename, dtype=float, skiprows=1)
