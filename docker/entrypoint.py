@@ -1,6 +1,7 @@
 import argparse
-import logging
+import os
 
+from common_4ch.file_utils import pjoin
 from common_4ch.config import configure_logging
 milog = configure_logging(log_name="cemrg/4ch")
 
@@ -25,6 +26,8 @@ def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myo
 
     if debug :  milog.debug(f"Importing extract_surfs function")
     from common_4ch.process_handler import extract_surfs
+
+    print(os.listdir(directory))
 
     extract_surfs(directory, input_tags_setup, apex_septum_setup, meshname, debug=False)
 
@@ -232,6 +235,10 @@ def main(args):
     local=args.dev_run_local
 
     if mode == "surfs":
+        if myhelp:
+            print(_surfs.__doc__)
+            return
+        
         par_folder=args.par_folder
         
         input_tags=pjoin(base_dir, par_folder, args.input_tags_setup)
