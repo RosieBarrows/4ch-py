@@ -1,8 +1,8 @@
 import argparse
 import logging
 
-from common_4ch.json_utils import *
-from common_4ch.meshtools_utils import *
+from common_4ch.config import configure_logging
+milog = configure_logging(log_name="cemrg/4ch")
 
 def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myocardium_OUT/myocardium", debug=False, help=False): 
     """
@@ -23,8 +23,8 @@ def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myo
         print(_surfs.__doc__)
         return
 
-    if debug :  logging.debug(f"Importing extract_surfs function")
-    from common_4ch.custom_commands import extract_surfs
+    if debug :  milog.debug(f"Importing extract_surfs function")
+    from common_4ch.process_handler import extract_surfs
 
     extract_surfs(directory, input_tags_setup, apex_septum_setup, meshname, debug=False)
 
@@ -44,8 +44,8 @@ def _correct_fibres(directory, mesh_path, debug=False, help=False) :
         print(_correct_fibres.__doc__)
         return
     
-    if debug :  logging.debug(f"Importing correct_fibres function")
-    from common_4ch.custom_commands import correct_fibres 
+    if debug :  milog.debug(f"Importing correct_fibres function")
+    from common_4ch.process_handler import correct_fibres 
 
     correct_fibres(f"{directory}/{mesh_path}/BiV") 
 
@@ -83,8 +83,8 @@ def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False
     endo_epi_laplace = f"{uac_output_folder}/{atrium}/endo_epi/phie.dat"
     outmeshname = f"{uac_folder}/{atrium}/{output}"
 
-    if debug: logging.debug(f"Importing surf2vol function")
-    from common_4ch.custom_commands import surf_to_volume
+    if debug: milog.debug(f"Importing surf2vol function")
+    from common_4ch.process_handler import surf_to_volume
 
     surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi_fibres_path, endo_epi_laplace, outmeshname, debug)
 
@@ -116,8 +116,8 @@ def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug=False
     endo_surf_path = f"{uac_folder}/{atrium}/{surf_endo}"
     epi_surf_path = f"{uac_folder}/{atrium}/{surf_epi}"
 
-    if debug: logging.debug(f"Importing laplace_prep function")
-    from common_4ch.custom_commands import laplace_preparation
+    if debug: milog.debug(f"Importing laplace_prep function")
+    from common_4ch.process_handler import laplace_preparation
 
     laplace_preparation(endo_surf_path, epi_surf_path, debug)
 
@@ -153,8 +153,8 @@ def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_
     mesh_path_no_ext = f"{directory}/{mesh_path}/{meshname}"
 
 
-    if debug :  logging.debug(f"Importing create_tags function")
-    from common_4ch.custom_commands import create_tags
+    if debug :  milog.debug(f"Importing create_tags function")
+    from common_4ch.process_handler import create_tags
 
     create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags_setup, input_bb_settings, debug)
 
@@ -185,8 +185,8 @@ def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex
     la_folder = f"{directory}/{subfolder}_LA"
     ra_folder = f"{directory}/{subfolder}_RA"
 
-    if debug :  logging.debug(f"Importing surf_presim function")
-    from common_4ch.custom_commands import surf_presim
+    if debug :  milog.debug(f"Importing surf_presim function")
+    from common_4ch.process_handler import surf_presim
 
     surf_presim(directory, la_folder, ra_folder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d, debug)
 
@@ -213,15 +213,15 @@ def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug=Fals
     
     mesh_path_no_ext = f"{directory}/{mesh_path}/{meshname}"
 
-    if debug :  logging.debug(f"Importing split_fec function")
-    from common_4ch.custom_commands import split_fec
+    if debug :  milog.debug(f"Importing split_fec function")
+    from common_4ch.process_handler import split_fec
 
     split_fec(mesh_path_no_ext, input_tags_setup, lvrv_tags, debug)
 
 
 def main(args):
 
-    logging.info("Starting 4ch docker container...")
+    milog.info("Starting 4ch docker container...")
 
     mode=args.operation
     myhelp=args.help
@@ -233,11 +233,10 @@ def main(args):
 
     if mode == "surfs":
         par_folder=args.par_folder
-        input_tags_file=args.input_tags_setup
-        input_tags=f"{par_folder}/{input_tags_file}"
-        apex_septum=f"{par_folder}/{args.apex_septum_setup}"
-        meshname=args.meshname
-        _surfs(base_dir, input_tags, apex_septum, meshname, debug=False, help=myhelp)
+        
+        input_tags=pjoin(base_dir, par_folder, args.input_tags_setup)
+        apex_septum=pjoin(base_dir, par_folder, args.apex_septum_setup)
+        _surfs(base_dir, input_tags, apex_septum, args.meshname, debug=False, help=myhelp)
     
     elif mode == "correctfibres": 
         mesh_path=args.mesh_path
@@ -252,7 +251,7 @@ def main(args):
 
         arg_list = [atrium, mesh_path, fibres_endo, fibres_epi]
         if None in arg_list:
-            logging.error("Please provide the endo and epi fibre files")
+            milog.error("Please provide the endo and epi fibre files")
             myhelp = True 
         else :
             if fibres_endo.endswith('.lon'):
@@ -271,7 +270,7 @@ def main(args):
 
         arg_list = [atrium, mesh_path, surf_endo, surf_epi]
         if None in arg_list:
-            logging.error("Please provide the endo and epi surface files")
+            milog.error("Please provide the endo and epi surface files")
             myhelp = True
         else :
             if not surf_endo.endswith('.surf'): surf_endo += '.surf'

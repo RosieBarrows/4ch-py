@@ -51,6 +51,9 @@ def big_msg(msg):
 	print("-"*length)
 	print(msg)
 	print("-"*length)
+
+def pjoin(*paths) :
+	return os.path.join(*paths)
 	
 def read_pts(filename):
 	print('Reading '+filename+'...')

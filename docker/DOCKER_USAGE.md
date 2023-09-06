@@ -10,7 +10,7 @@ to run the 4ch pipeline.
 + `BASE_DIR` is a folder where the entire project is saved. This has a pre-defined structure and naming conventions.
 + We assume `BASE_DIR` will be passed to docker as a `--volume=$BASE_DIR:/data`, so all other paths need to be _relative_ to it.
 + The container assumes that its folder `/data` is the base folder. 
-+ The container parses the input arguments, then passes the right arguments to a function inside `common_4ch.custom_commands`, which are modelled after the `main_*.py` scripts in this repository
++ The container parses the input arguments, then passes the right arguments to a function inside `common_4ch.process_handler`, which are modelled after the `main_*.py` scripts in this repository
 
 ## Step 0. Extract Surfaces
 ```sh
