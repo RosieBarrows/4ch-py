@@ -310,7 +310,7 @@ def main(args):
 
    
 if __name__ == '__main__':
-    input_parser = argparse.ArgumentParser(prog="docker run --rm --volume=/path/to/data:/data cemrg/uac:TAG",
+    input_parser = argparse.ArgumentParser(prog="docker run --rm --volume=/path/to/data:/data cemrg/4ch:TAG",
                                            description="4ch docker container entrypoint",
                                            usage="%(prog)s [surfs|correctfibres|surf2vol|laplace_prep|tags|presim|fec] [options]",
                                            epilog="$ docker run cemrg/4ch:TAG MODE help \n# for specific help about the operation mode")
