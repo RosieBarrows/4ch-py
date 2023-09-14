@@ -40,7 +40,7 @@ def _correct_fibres(directory, mesh_path, debug=False, help=False) :
     --mesh-path: subfolder to mesh
 
     Usage:
-    correctfibres --mesh-path sub/dir/to/folder
+    correctfibres --mesh-path sub/dir/to/meshname ## do not use extension!
 
     """
     if help :
@@ -50,7 +50,7 @@ def _correct_fibres(directory, mesh_path, debug=False, help=False) :
     if debug :  milog.debug(f"Importing correct_fibres function")
     from common_4ch.process_handler import correct_fibres 
 
-    correct_fibres(f"{directory}/{mesh_path}/BiV") 
+    correct_fibres(f"{directory}/{mesh_path}") 
 
 def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False, help=False) :
     """
@@ -348,10 +348,11 @@ if __name__ == '__main__':
 
     input_parser.add_argument("--output", metavar="filename", nargs='?', type=str, default="")
 
-    input_parser.add_argument("--debug", action='store_true', help="Only show command to run")
-    input_parser.add_argument("--dev-base-dir", "-bdir", metavar="dev", nargs='?', default='/data', type=str, help="(only DEVs) Data path")
-    input_parser.add_argument("--dev-code-dir", "-code",  metavar="dev", nargs='?', default='/code', type=str, help="(only DEVs) Code path")
-    input_parser.add_argument("--dev-run-local", "-local", action='store_true', help="(only DEVs) Run locally toggle")
+    dev_group = input_parser.add_argument_group("Developer options", description="Options only available to developers")
+    dev_group.add_argument("--debug", action='store_true', help="Only show command to run")
+    dev_group.add_argument("--dev-base-dir", "-bdir", metavar="dev", nargs='?', default='/data', type=str, help="(only DEVs) Data path")
+    dev_group.add_argument("--dev-code-dir", "-code",  metavar="dev", nargs='?', default='/code', type=str, help="(only DEVs) Code path")
+    dev_group.add_argument("--dev-run-local", "-local", action='store_true', help="(only DEVs) Run locally toggle")
 
     args = input_parser.parse_args()
     

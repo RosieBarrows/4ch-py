@@ -13,30 +13,32 @@ milog = configure_logging(log_name=__name__)
 
 def correct_fibres(meshname):
     """Corrects fibre orientation in the mesh"""
-    milog.info('Reading mesh...')
-    lon = np.loadtxt(f"{meshname}.lon",dtype=float,skiprows=1)
-    # pts = np.loadtxt(f"{meshname}.pts",dtype=float,skiprows=1)
-    # elem = np.loadtxt(f"{meshname}.elem",dtype=int,skiprows=1,usecols=[1,2,3,4])
+    milog.info('Reading mesh fibres...')
+    lon = fu.read_lon(f'{meshname}.lon')
+    # pts = fu.read_pts(f'{meshname}.pts')
+    # elem = fu.read_elem(f'{meshname}.elem')
+    milog.info('Done...')
 
     milog.info('Reading element centres...')
-    elemC = np.loadtxt(f"{meshname}+_elem_centres.pts",dtype=float,skiprows=1)
+    elemC = fu.read_pts(f'{meshname}_elem_centres.pts')
+    milog.info('Done...')
 
     to_correct = np.where(np.abs(lon[:,2])<1e-6)[0]
-    milog.info(f"Found: {str(to_correct.shape[0])} elements to correct")
+    milog.info(f'Found {to_correct.shape[0]} elements to correct')
 
     lon_corrected = copy.deepcopy(lon)
     good_elements = np.setdiff1d(np.arange(elemC.shape[0]), to_correct, assume_unique=True)
-
-    for idx in tqdm(to_correct, desc="Correcting fibre orientation..."):
+    # for idx in tqdm(to_correct, desc="Correcting fibre orientation..."):
+    for idx in to_correct:
         d = np.linalg.norm(elemC[good_elements,:] - elemC[idx,:],axis=1)
         closest = good_elements[np.where(d == np.min(d))[0]]
         lon_corrected[idx,:] = lon[closest,:]
+
     to_correct = np.where(np.abs(lon_corrected[:,2])<1e-6)[0]
-
-    milog.info(f"Left to correct {str(to_correct.shape[0])}")
+    milog.info(f'Left to correct {to_correct.shape[0]}')
     milog.info('Correcting fibre orientation...')
-
-    np.savetxt(f"{meshname}_corrected.lon",lon_corrected,fmt="%g",header='2',comments='')
+    np.savetxt(f'{meshname}_corrected.lon',lon_corrected,fmt="%g",header='2',comments='')
+    milog.info('Done...')
 
 
 def extract_surfs(base_dir : str, input_tags_setup : str, apex_septum_setup : str, meshname="meshing/myocardium_OUT/myocardium", debug=False): 

@@ -6,6 +6,9 @@ import vtk
 import os
 from vtk.util import numpy_support
 
+from common_4ch.config import configure_logging
+milog = configure_logging(log_name=__name__)
+
 class NumpyEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, np.integer):
@@ -19,82 +22,80 @@ class NumpyEncoder(json.JSONEncoder):
 def mycp(src,dst, debug=False):
 	cmd = f"cp {src} {dst}"
 	if debug:
-		print(cmd)
+		milog.info(cmd)
 	os.system(cmd)
 
 def mymv(src,dst, debug=False):
 	cmd = f"mv {src} {dst}"
 	if debug:
-		print(cmd)
+		milog.info(cmd)
 	os.system(cmd)
 
 def mymkdir(path, full_path=False, debug=False):
 	# check if path exists
 	if os.path.exists(path):
-		print(f"Path [{path}] already exists")
+		milog.info(f"Path [{path}] already exists")
 		return
 	
 	flag = "-p" if full_path else ""
 	cmd = f"mkdir {flag} {path}"
 	if debug:
-		print(cmd)
+		milog.info(cmd)
 	os.system(cmd)
 
 def myrm(path, debug=False):
 	cmd = f"rm -rf {path}"
 	if debug:
-		print(cmd)
+		milog.info(cmd)
 	os.system(cmd)
 
 def big_msg(msg):
 	length = len(msg)
-	print("-"*length)
-	print(msg)
-	print("-"*length)
+	milog.info("-"*length)
+	milog.info(msg)
+	milog.info("-"*length)
 
 def pjoin(*paths) :
 	return os.path.join(*paths)
 	
 def read_pts(filename):
-	print('Reading '+filename+'...')
+	milog.info(f'Reading {filename}...')
 	return np.loadtxt(filename, dtype=float, skiprows=1)
 
 def read_elem(filename,el_type='Tt',tags=True):
-	print('Reading '+filename+'...')
+	milog.info(f'Reading {filename}...')
+	cols_notags_dic = {'Tt':(1,2,3,4),'Tr':(1,2,3,4),'Ln':(1,2,3)}
+	try: 
+		cols = cols_notags_dic[el_type]
+		if tags:
+			# add tags column (largest + 1)
+			cols += (cols[-1]+1,)
 
-	if el_type=='Tt':
-		if tags:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3,4,5))
-		else:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3,4))
-	elif el_type=='Tr':
-		if tags:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3,4))
-		else:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3))
-	elif el_type=='Ln':
-		if tags:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3))
-		else:
-			return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2))
-	else:
-		raise Exception('element type not recognised. Accepted: Tt, Tr, Ln')
+		return np.loadtxt(filename, dtype=int, skiprows=1, usecols=cols)
+	
+	except KeyError:
+		error_msg = f"element type not recognised. Accepted: {list(cols_notags_dic.keys())}"
+		milog.error(error_msg)
+		raise Exception(error_msg)
 
 def read_lon(filename):
-	print('Reading '+filename+'...')
+	milog.info(f'Reading {filename}...')
 
 	return np.loadtxt(filename, dtype=float, skiprows=1)
 
-def read_surf_polydata(filename):
-
-	print('Reading '+filename+'...')
+def get_polydata(filename) -> vtk.vtkPolyData:
+	milog.info(f'Reading {filename}...')
 
 	polydata_reader = vtk.vtkPolyDataReader()
 
 	polydata_reader.SetFileName(filename)
 	polydata_reader.Update()
 
-	polydata = polydata_reader.GetOutput()
+	return polydata_reader.GetOutput()
+
+def read_surf_polydata(filename):
+
+	polydata = get_polydata(filename)
 
 	points = numpy_support.vtk_to_numpy(polydata.GetPoints().GetData())
 
@@ -104,26 +105,19 @@ def read_surf_polydata(filename):
 
 	tags = numpy_support.vtk_to_numpy(polydata.GetCellData().GetArray('elemTag'))
 
-	print('Done.')
+	milog.info('Done.')
 
 	return points,faces,tags
 
 def read_clipper(filename):
 
-	print('Reading center and radius for clipper '+filename+'...')
-
-	polydata_reader = vtk.vtkPolyDataReader()
-
-	polydata_reader.SetFileName(filename)
-	polydata_reader.Update()
-
-	polydata = polydata_reader.GetOutput()
+	polydata = get_polydata(filename)
 
 	points = numpy_support.vtk_to_numpy(polydata.GetPoints().GetData())
 	center = np.mean(points,axis=0)
 	radius = np.linalg.norm(points[0,:]-center)
 
-	print('Done.')
+	milog.info('Done.')
 
 	return center,radius
 
@@ -159,8 +153,8 @@ def reindex_surf(vtx_surf,
 	return surf_reindexed
 
 def write_surf_caroline(filename,surf):
-	print('Writing '+filename+'...')
-	print("Check you are using the correct write_surf function")
+	milog.info(f'Writing {filename}...')
+	milog.info("Check you are using the correct write_surf function")
 
 	with open(filename, 'w') as fp:
 		fp.write('{}\n'.format(surf.shape[0]))
@@ -169,30 +163,28 @@ def write_surf_caroline(filename,surf):
 
 def write_pts_caroline(pts,filename):
 
-	print('Writing '+filename+'...')
+	milog.info(f'Writing {filename}...')
 
 	assert pts.shape[1] == 3
 	with open(filename, 'w') as fp:
 		fp.write('{}\n'.format(pts.shape[0]))
 		for pnt in pts:
 			fp.write('{0[0]} {0[1]} {0[2]}\n'.format(pnt))
-	fp.close()
 
 def write_elem_caroline(elem,
 			   tags,
 			   filename,
 			   el_type='Tt'):
-	print('Writing '+filename+'...')
-
-	if el_type=='Tt':
-		assert elem.shape[1] == 4
-	elif el_type=='Tr':
-		assert elem.shape[1] == 3
-	elif el_type=='Ln':
-		assert elem.shape[1] == 2
-	else:
-		raise Exception('element type not recognised. Accepted: Tt, Tr, Ln')
-
+	milog.info(f'Writing {filename}...')
+	elem_shape_dic = {'Tt':4,'Tr':3,'Ln':2}
+	try:
+		elem_shape = elem_shape_dic[el_type]
+		assert elem.shape[1] == elem_shape
+	except KeyError:
+		error_msg = f"element type not recognised. Accepted: {list(elem_shape_dic.keys())}"
+		milog.error(error_msg)
+		raise Exception(error_msg)
+	
 	assert elem.shape[0] == tags.shape[0]
 
 	with open(filename, 'w') as fe:
@@ -203,13 +195,12 @@ def write_elem_caroline(elem,
 				fe.write(' '+str(e))
 			fe.write(' '+str(tags[i]))
 			fe.write('\n')
-	fe.close()
 
 def write_tets_ln(filename,
 				  elem,
 				  ln):
 
-	print('Writing '+filename+'...')
+	milog.info(f'Writing {filename}...')
 
 	with open(filename, 'w') as fp:
 		fp.write('{}\n'.format(elem.shape[0] + ln.shape[0]))
@@ -219,7 +210,7 @@ def write_tets_ln(filename,
 			fp.write('Ln {} {} {}\n'.format(int(cn[0]),int(cn[1]),int(cn[2])))
 
 def write_lon(lon,filename):
-	print('Writing '+filename+'...')
+	milog.info(f'Writing {filename}...')
 
 	assert lon.shape[1] % 3 == 0
 	with open(filename, 'w') as fl:
@@ -230,10 +221,9 @@ def write_lon(lon,filename):
 					fl.write(str(l)+'\n')
 				else:
 					fl.write(str(l)+' ')
-	fl.close()
 
 def write_vtx(filename, vtx,init_row=2):
-	print('Writing '+filename+'...')
+	milog.info(f'Writing {filename}...')
 
 	with open(filename, 'w') as fd:
 		if init_row==2:
@@ -255,7 +245,7 @@ def numpy_hook(dct):
 	return dct
 
 def load_json(filename):
-	print('Reading '+filename+'...')
+	milog.info(f'Reading {filename}...')
 
 	dct = {}
 	with open(filename, "r") as f:
@@ -263,25 +253,32 @@ def load_json(filename):
 	return dct
 
 def read_vtx(filename,init_row=2):
-	print('Reading '+filename+'...')
+	milog.info(f'Reading {filename}...')
 
 	return np.loadtxt(filename, dtype=int, skiprows=init_row)
 
 
 def setup_sim(heartFolder,presimFolder,electrodes_paths_array):
-	os.system("mkdir "+heartFolder+"/sims_folder")
+	sims_folder = pjoin(heartFolder,"sims_folder")
+	mymkdir(sims_folder) 
 
-	os.system("cp "+presimFolder+"/elem_dat_UVC_ek_combined.dat "+heartFolder+"/sims_folder/pericardium_scale.dat")
-	os.system("cp "+presimFolder+"/epicardium_for_sim.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/LA_endo.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/LV_endo.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/RA_endo.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/RV_endo.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/RPVs.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/RPVs.surf.vtx "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/SVC.surf "+heartFolder+"/sims_folder")
-	os.system("cp "+presimFolder+"/surfaces_simulation/surfaces_rings/SVC.surf.vtx "+heartFolder+"/sims_folder")
+	surf_sim_folder = pjoin(presimFolder,"surfaces_simulation")
+	surf_rings_folder = pjoin(surf_sim_folder,"surfaces_rings")
+	
+	mycp(pjoin(presimFolder,"elem_dat_UVC_ek_combined.dat"), pjoin(sims_folder, "pericardium_scale.dat"))
+	fnames = [
+		( presimFolder, "epicardium_for_sim.surf"),
+		( surf_sim_folder, "LA_endo.surf"),
+		( surf_sim_folder, "LV_endo.surf"),
+		( surf_sim_folder, "RA_endo.surf"),
+		( surf_sim_folder, "RV_endo.surf"),
+		( surf_rings_folder, "RPVs.surf"),
+		( surf_rings_folder, "SVC.surf"),
+	]	
+
+	for folder, fname in fnames:
+		mycp(pjoin(folder, fname), pjoin(sims_folder, fname))
 
 	for electrode in electrodes_paths_array:
-		os.system("cp "+electrode + " " +heartFolder+"/sims_folder")
+		mycp(electrode, pjoin(sims_folder, os.path.basename(electrode)))
 
