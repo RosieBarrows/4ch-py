@@ -1,0 +1,27 @@
+{
+    "la": {
+    	"phi_min_aorta_side":          -3.15,
+    	"begin_interp_aorta_side":     -2.09,
+    	"end_interp_aorta_side":       -1.54,
+    	"phi_max":                         0,
+        "begin_interp_not_aorta":       -0.1,
+        "end_interp_not_aorta":          0.7,
+        "phi_min_not_aorta":             3.15
+    },
+        "ra": {
+        "phi_min_aorta_side":          -3.15,
+        "begin_interp_aorta_side":     -1.0,
+        "end_interp_aorta_side":       -0.5,
+        "phi_max":                         0,
+        "begin_interp_not_aorta":       0.5,
+        "end_interp_not_aorta":          2,
+        "phi_min_not_aorta":             3.15
+    },
+    "Iz": {
+    	"Iz_0": 0,
+    	"Iz_1": 0.4,
+    	"Iz_2": 0.7,
+    	"Iz_3": 1.0
+    }
+}
+    
