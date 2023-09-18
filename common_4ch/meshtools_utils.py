@@ -840,7 +840,7 @@ def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 	tags_list_vent = [str(t) for t in tags_list_vent]
 	tags_list_vent_string = ",".join(tags_list_vent)
 
-	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV"])
+	tags_list_VPs = extract_tags(input_tags,["MV","TV","AV","PV","PArt"])
 	tags_list_VPs = [str(t) for t in tags_list_VPs]
 	tags_list_VPs_string = ",".join(tags_list_VPs)
 
@@ -1404,7 +1404,7 @@ def meshtool_map_vtx_ra(surf_folder):
 
 def meshtool_extract_peri(mesh,presimFolder,input_tags):
 
-	tags_list_peri = extract_tags(input_tags,["LV","RV","LA","RA","BB","AV"])
+	tags_list_peri = extract_tags(input_tags,["LV","RV","LA","RA","BB","AV_plane"])
 	tags_list_peri = [str(t) for t in tags_list_peri]
 	tags_list_peri_string = ",".join(tags_list_peri)
 
@@ -1419,6 +1419,41 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=vtk -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
 	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
+
+	tmp_files = os.listdir(presimFolder)
+	peri_surface_CC = []
+	i = 0
+	isfile=True
+	while isfile:
+		if "peri_surface_CC.part"+str(i)+".elem" in tmp_files:
+			peri_surface_CC.append("peri_surface_CC.part"+str(i))
+		else: 
+			isfile = False
+		i += 1
+
+	print("Checking connected component size and keeping only biggest...")
+	if len(peri_surface_CC)>1:
+		CC_size = np.zeros((len(peri_surface_CC),),dtype=int)
+		for i,CC in enumerate(peri_surface_CC):
+			surf = read_elem(presimFolder+CC+".elem",el_type="Tr",tags=False)
+			CC_size[i] = surf.shape[0]
+
+		peri_surface_CC_old = copy.deepcopy(peri_surface_CC)
+		sorted_size = np.argsort(CC_size)
+		peri_surface_CC[0] = peri_surface_CC_old[sorted_size[-1]]
+
+		for i in range(len(peri_surface_CC)-1):
+			print("Removing extraneous surfaces...")
+			os.system("rm "+presimFolder+peri_surface_CC_old[sorted_size[i]]+".*")
+
+
+		connected_component_to_surface(presimFolder+peri_surface_CC_old[0],
+							   presimFolder+"/peri_surface.surf",
+							   presimFolder+"/epicardium_for_sim")
+	else:
+		connected_component_to_surface(presimFolder+"peri_surface_CC.part0",
+							   presimFolder+"/peri_surface.surf",
+							   presimFolder+"/epicardium_for_sim")
 
 def meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags):
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"surfaces_simulation/surface_heart -ofmt=carp_txt")
