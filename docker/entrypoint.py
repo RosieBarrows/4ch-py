@@ -1,6 +1,9 @@
 import argparse
 import os
 
+DIR = os.path.dirname(os.path.realpath(__file__))
+os.sys.path.append(os.path.join(DIR, ".."))
+
 from common_4ch.file_utils import pjoin
 from common_4ch.config import configure_logging
 milog = configure_logging(log_name="cemrg/4ch")
@@ -233,6 +236,11 @@ def main(args):
     base_dir=args.dev_base_dir # default=/data
     codes_d=args.dev_code_dir
     local=args.dev_run_local
+
+    not_supported_yet = ["surf2vol", "laplace_prep", "presim", "tags", "fec"]
+    if mode in not_supported_yet:
+        milog.warning(f"\n\nMode [{mode}] is not supported yet")
+        return 
 
     if mode == "surfs":
         if myhelp:
