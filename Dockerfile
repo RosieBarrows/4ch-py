@@ -23,6 +23,6 @@ RUN /opt/venv/bin/python3 -m pip install -r /requirements.txt
 COPY . /code/
 WORKDIR /code/
 
-CMD [-h]
+CMD ["-h"]
 ENTRYPOINT ["/opt/venv/bin/python3", "-u", "/code/docker/entrypoint.py"]
 
