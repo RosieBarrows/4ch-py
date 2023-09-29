@@ -1418,7 +1418,7 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 	tags_list_not_peri_string = ",".join(tags_list_not_peri)
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=carp_txt -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
-	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=carp_txt -submsh="+presimFolder+"/peri_surface_CC")
+	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=carp_txt -ofmt=carp_txt -submsh="+presimFolder+"/peri_surface_CC")
 
 	tmp_files = os.listdir(presimFolder)
 	peri_surface_CC = []
