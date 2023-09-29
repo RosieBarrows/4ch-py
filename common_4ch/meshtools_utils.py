@@ -1417,8 +1417,8 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 	tags_list_not_peri = [str(t) for t in tags_list_not_peri]
 	tags_list_not_peri_string = ",".join(tags_list_not_peri)
 
-	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=vtk -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
-	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
+	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/peri_surface -ofmt=carp_txt -op="+tags_list_peri_string+"-"+tags_list_not_peri_string)
+	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=carp_txt -submsh="+presimFolder+"/peri_surface_CC")
 
 	tmp_files = os.listdir(presimFolder)
 	peri_surface_CC = []
@@ -1447,7 +1447,7 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 			os.system("rm "+presimFolder+peri_surface_CC_old[sorted_size[i]]+".*")
 
 
-		connected_component_to_surface(presimFolder+peri_surface_CC_old[0],
+		connected_component_to_surface(presimFolder+peri_surface_CC[0],
 							   presimFolder+"/peri_surface.surf",
 							   presimFolder+"/epicardium_for_sim")
 	else:
