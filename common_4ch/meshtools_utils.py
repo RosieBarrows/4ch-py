@@ -1413,7 +1413,7 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 											 	  "LSPV","LIPV","RSPV","RIPV",
 											 	  "LAA","SVC","IVC",
 											 	  "LAA_ring","SVC_ring","IVC_ring",
-											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
+											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring","FEC"])
 	tags_list_not_peri = [str(t) for t in tags_list_not_peri]
 	tags_list_not_peri_string = ",".join(tags_list_not_peri)
 
@@ -1631,7 +1631,8 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","SVC_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring"])
+											   "LSPV_ring","LIPV_ring",
+											   "FEC","BB","AV_plane"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
@@ -1648,11 +1649,13 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
+											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring",
+											   "FEC","BB","AV_plane"])
 	tags_list_other = [str(t) for t in tags_list_other]
 	tags_list_other_string = ",".join(tags_list_other)
 
 	os.system("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/SVC -ofmt=vtk -op="+tags_list_svc_ring_string+"-"+tags_list_other_string)
+	print("meshtool extract surface -msh="+mesh+" -surf="+presimFolder+"/surfaces_simulation/surfaces_rings/SVC -ofmt=vtk -op="+tags_list_svc_ring_string+"-"+tags_list_other_string)
 
 	print("Converting necessary surfs to vtx files...")
 	rpvs_surface = np.loadtxt(presimFolder+"/surfaces_simulation/surfaces_rings/RPVs.surf",dtype=int,skiprows=1,usecols=[1,2,3])
