@@ -1014,10 +1014,10 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 											 	  "LSPV","LIPV","RSPV","RIPV",
 											 	  "LAA","SVC","IVC",
 											 	  "LAA_ring","SVC_ring","IVC_ring",
-											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
+											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring", "FEC"])
 
 	extract_surface_wrapper(mesh, f"{presimFolder}/peri_surface", f"{tags_list_peri_string}-{tags_list_not_peri_string}")
-	os.system("meshtool extract unreachable -msh="+presimFolder+"/peri_surface.surfmesh -ifmt=vtk -ofmt=vtk -submsh="+presimFolder+"/peri_surface_CC")
+	os.system(f"meshtool extract unreachable -msh={presimFolder}/peri_surface.surfmesh -ifmt=carp_txt -ofmt=carp_txt -submsh={presimFolder}/peri_surface_CC")
 
 	tmp_files = os.listdir(presimFolder)
 	peri_surface_CC = []
@@ -1046,7 +1046,7 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 			os.system("rm "+presimFolder+peri_surface_CC_old[sorted_size[i]]+".*")
 
 
-		connected_component_to_surface(presimFolder+peri_surface_CC_old[0],
+		connected_component_to_surface(presimFolder+peri_surface_CC[0],
 							   presimFolder+"/peri_surface.surf",
 							   presimFolder+"/epicardium_for_sim")
 	else:
@@ -1130,7 +1130,8 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","SVC_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring"])
+											   "LSPV_ring","LIPV_ring", 
+											   "FEC","BB","AV_plane"])
 
 	extract_surface_wrapper(mesh, f"{presimFolder}/surfaces_simulation/surfaces_rings/RPVs", f"{tags_list_rpv_rings_string}-{tags_list_other_string}")
 
@@ -1142,7 +1143,8 @@ def meshtool_extract_rings(mesh,presimFolder,input_tags):
 											   "LSPV","LIPV","RSPV","RIPV",
 											   "LAA","SVC","IVC",
 											   "LAA_ring","IVC_ring",
-											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring"])
+											   "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring", 
+											   "FEC","BB","AV_plane"])
 
 	extract_surface_wrapper(mesh, f"{presimFolder}/surfaces_simulation/surfaces_rings/SVC", f"{tags_list_svc_ring_string}-{tags_list_other_string}")
 
