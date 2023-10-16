@@ -34,16 +34,10 @@ def main(args):
 	# Extracting the surface for the perciardium boundary condition
 	# ----------------------------------------------------------------------------------------------
 	meshtool_extract_peri(mesh,presimFolder,input_tags)
-        
-	
-
-	connected_component_to_surface(presimFolder+"/peri_surface_CC_epicardium",
-								   presimFolder+"/peri_surface.surf",
-								   presimFolder+"/epicardium_for_sim")
 
 	surf2vtk(mesh,presimFolder+"/epicardium_for_sim"+".surf",presimFolder+"/epicardium_for_sim"+".vtk")
 
-	# os.system("rm "+presimFolder+"/*CC*")
+	os.system("rm "+presimFolder+"/*CC*")
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the epi and LV/RV/LA/RA endo surfaces
@@ -51,7 +45,7 @@ def main(args):
 	os.system("mkdir -p "+presimFolder+"/surfaces_simulation")
 	meshtool_extract_epi_endo_surfs(mesh,presimFolder,input_tags)
 
-	# os.system("rm "+presimFolder+"/surfaces_simulation/surface_heart_CC.*")
+	os.system("rm "+presimFolder+"/surfaces_simulation/surface_heart_CC.*")
 
 	# ----------------------------------------------------------------------------------------------
 	# Extracting the surfaces of the rings

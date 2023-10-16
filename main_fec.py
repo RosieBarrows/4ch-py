@@ -44,7 +44,8 @@ def main(args):
 
 	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.lon "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.lon")
 	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.pts "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.pts")
-	os.system("meshtool convert -imsh="+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv -omsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -ofmt=carp_bin")
+	os.system("meshtool convert -imsh="+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv -omsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -ofmt=carp_txt")
+	os.system("meshtool convert -imsh="+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv -omsh="+heartFolder+"/sims_folder/myocardium_AV_FEC_BB_lvrv -ofmt=vtk")
 
 
 

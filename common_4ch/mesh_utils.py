@@ -588,7 +588,7 @@ def separate_FEC_lvrv(elem_file,
 	fec_tags = elem_fec[:,-1]
 	print('Done')
 
-	print('Readining surfaces...')
+	print('Reading surfaces...')
 	lv_endo = read_surf(LV_endo_surf)
 	lv_endo_vtx = surf2vtx(lv_endo)
 	rv_endo = read_surf(RV_endo_surf)
