@@ -47,8 +47,8 @@ def laplace_endo2elem(meshname,
 				phi_el[i] = 1
 				flag=1
 			if phi[tt[k]] == 0:
-			    phi_el[i] = 0
-			    flag=1
+				phi_el[i] = 0
+				flag=1
 		if flag==0:
 			phi_el[i]=np.mean(phi[tt])	
 
@@ -279,51 +279,51 @@ def combine_tags(meshname,
 	np.savetxt(output_file,tags_combined,fmt="%d")
 
 def surf2vtk(msh_file,surf_file,output_name):
-    print('Converting '+surf_file+' to vtk...' )
+	print('Converting '+surf_file+' to vtk...' )
 
-    surf = np.loadtxt(surf_file,dtype=int,skiprows=1,usecols=[1,2,3])
-    vtx = surf2vtx(surf)
+	surf = np.loadtxt(surf_file,dtype=int,skiprows=1,usecols=[1,2,3])
+	vtx = surf2vtx(surf)
 
-    # msh = meshio.read(msh_file)
-    pts = np.loadtxt(msh_file+".pts",dtype=float,skiprows=1)
+	# msh = meshio.read(msh_file)
+	pts = np.loadtxt(msh_file+".pts",dtype=float,skiprows=1)
 
-    pts_surf = pts[vtx,:]
+	pts_surf = pts[vtx,:]
 
-    surf_reindexed = copy.deepcopy(surf)
+	surf_reindexed = copy.deepcopy(surf)
 
 
 
-    for i in range(surf.shape[0]):
-            surf_reindexed[i,0] = np.where(vtx==surf[i,0])[0]
-            surf_reindexed[i,1] = np.where(vtx==surf[i,1])[0]
-            surf_reindexed[i,2] = np.where(vtx==surf[i,2])[0]
+	for i in range(surf.shape[0]):
+			surf_reindexed[i,0] = np.where(vtx==surf[i,0])[0]
+			surf_reindexed[i,1] = np.where(vtx==surf[i,1])[0]
+			surf_reindexed[i,2] = np.where(vtx==surf[i,2])[0]
 
-    cells = {"triangle": surf_reindexed}
-    surf_vtk_msh = meshio.Mesh(
-                            pts_surf,
-                            cells
-                            )
+	cells = {"triangle": surf_reindexed}
+	surf_vtk_msh = meshio.Mesh(
+							pts_surf,
+							cells
+							)
 
-    meshio.write(output_name, surf_vtk_msh,file_format="vtk")
+	meshio.write(output_name, surf_vtk_msh,file_format="vtk")
 
 def surf2vtx(surf):
 	return np.unique(surf.flatten())
 
 
 def write_surf(surf,surf_file):
-        f = open(surf_file,"w")
-        f.write(str(int(surf.shape[0]))+"\n")
-        for t in surf:
-                f.write("Tr "+str(t[0])+" "+str(t[1])+" "+str(t[2])+"\n")
-        f.close()
+		f = open(surf_file,"w")
+		f.write(str(int(surf.shape[0]))+"\n")
+		for t in surf:
+				f.write("Tr "+str(t[0])+" "+str(t[1])+" "+str(t[2])+"\n")
+		f.close()
 
 def write_vtx(vtx,vtx_file):
-        f = open(vtx_file,"w")
-        f.write(str(int(vtx.shape[0]))+"\n")
-        f.write("intra\n")
-        for v in vtx:
-                f.write(str(v)+"\n")
-        f.close()
+		f = open(vtx_file,"w")
+		f.write(str(int(vtx.shape[0]))+"\n")
+		f.write("intra\n")
+		for v in vtx:
+				f.write(str(v)+"\n")
+		f.close()
 
 def connected_component_to_surface(eidx_file,original_surface,output_surface):
 	eidx = np.fromfile(eidx_file+".eidx", dtype=int, count=-1)
@@ -354,8 +354,8 @@ def remove_sept(mesh,surf_folder):
 	for tr in tqdm (rvendo_surf, desc="Looping over triangles..."):
 		if len(np.intersect1d(tr,rvsept_vtx))<3:
 			freewall_tr.append(tr)
-        # else:
-        	# sept_tr.append(tr)
+		# else:
+			# sept_tr.append(tr)
 
 	print("Finished looping over triangles")
 
@@ -614,6 +614,47 @@ def separate_FEC_lvrv(elem_file,
 	elem_fec[:,-1] = new_tags
 	write_tets(elem_output,elem_fec)
 
+def separate_FEC_lvrv_sets(elem_file, fec_elem_file, LV_endo_surf, RV_endo_surf, elem_output, original_tags_settings, new_tags_settings):
+
+	print('Reading original tags...')
+	elem = read_tets(elem_file)
+	original_tags = elem[:, -1]
+	print('Done')
+
+	print('Reading fec tags...')
+	elem_fec = read_tets(fec_elem_file)
+	fec_tags = elem_fec[:, -1]
+	print('Done')
+
+	print('Reading surfaces...')
+	lv_endo = read_surf(LV_endo_surf)
+	lv_endo_vtx = set(surf2vtx(lv_endo))
+	rv_endo = read_surf(RV_endo_surf)
+	rv_endo_vtx = set(surf2vtx(rv_endo))
+	print('Done')
+
+	lv_eidx = np.where(original_tags == new_tags_settings["LV"])[0]
+	rv_eidx = np.where(original_tags == new_tags_settings["RV"])[0]
+	fec_eidx = np.where(fec_tags == original_tags_settings["FEC"])[0]
+
+	print('Extracted LV, FEC, and RV')
+
+	new_tags = copy.deepcopy(fec_tags)
+
+	for eidx in fec_eidx:
+		intersection_rv = set(elem[eidx, 0:-1]).intersection(rv_endo_vtx)
+
+		if original_tags[eidx] == 1 and not intersection_rv:
+			new_tags[eidx] = new_tags_settings["FEC_LV"]
+		elif original_tags[eidx] == 1 and intersection_rv:
+			new_tags[eidx] = new_tags_settings["FEC_SV"]
+		else:
+			new_tags[eidx] = new_tags_settings["FEC_RV"]
+
+	elem_fec[:, -1] = new_tags
+	write_tets(elem_output, elem_fec)
+
+
 def find_cog_surf(pts):
 	cog = np.mean(pts,axis=0)
 
@@ -700,25 +741,25 @@ def query_outwards_surf(surf,pts,cog):
 		return False
 		
 def read_pnts(filename):
-    return np.loadtxt(filename, dtype=float, skiprows=1)
+	return np.loadtxt(filename, dtype=float, skiprows=1)
 
 def write_pnts(filename, pts):
-    assert len(pts.shape) == 2 and pts.shape[1] == 3
-    with open(filename, 'w') as fp:
-        fp.write('{}\n'.format(pts.shape[0]))
-        for pnt in pts:
-            fp.write('{0[0]}\t{0[1]}\t{0[2]}\n'.format(pnt))
+	assert len(pts.shape) == 2 and pts.shape[1] == 3
+	with open(filename, 'w') as fp:
+		fp.write('{}\n'.format(pts.shape[0]))
+		for pnt in pts:
+			fp.write('{0[0]}\t{0[1]}\t{0[2]}\n'.format(pnt))
 
 
 def read_surface(filename):
-    return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3))
+	return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(1,2,3))
 
 def write_surface(filename, surfs):
-    assert len(surfs.shape) == 2 and surfs.shape[1] == 3
-    with open(filename, 'w') as fp:
-        fp.write('{}\n'.format(surfs.shape[0]))
-        for tri in surfs:
-            fp.write('Tr {0[0]}\t{0[1]}\t{0[2]}\n'.format(tri))
+	assert len(surfs.shape) == 2 and surfs.shape[1] == 3
+	with open(filename, 'w') as fp:
+		fp.write('{}\n'.format(surfs.shape[0]))
+		for tri in surfs:
+			fp.write('Tr {0[0]}\t{0[1]}\t{0[2]}\n'.format(tri))
 
 def read_neubc(filename):
    return np.loadtxt(filename, dtype=int, skiprows=1, usecols=(0,1,2,3,4,5)) 
@@ -730,14 +771,14 @@ def read_elems(filename):
 
 def vector_cprod(vec1, vec2):
   return np.array([vec1[1]*vec2[2]-vec1[2]*vec2[1],
-                   vec1[2]*vec2[0]-vec1[0]*vec2[2],
-                   vec1[0]*vec2[1]-vec1[1]*vec2[0]])
+				   vec1[2]*vec2[0]-vec1[0]*vec2[2],
+				   vec1[0]*vec2[1]-vec1[1]*vec2[0]])
 
 def read_dat(filename):
-    return np.loadtxt(filename, dtype=float, skiprows=0)
+	return np.loadtxt(filename, dtype=float, skiprows=0)
 
 def read_vtx(filename):
-    return np.loadtxt(filename, dtype=int, skiprows=2)
+	return np.loadtxt(filename, dtype=int, skiprows=2)
 
 def vector_sprod(vec1, vec2):
   return vec1[0]*vec2[0]+vec1[1]*vec2[1]+vec1[2]*vec2[2]
@@ -780,7 +821,7 @@ def set_pericardium(mesh,presimFolder,heartFolder):
 	pcatags = [1, 2]
 	UVCptsmsh = np.zeros(len(pnts[:,0]))
 	for i, ind in enumerate(vtxsubmsh):
-	    UVCptsmsh[ind] = UVCpts[i]
+		UVCptsmsh[ind] = UVCpts[i]
 
 	UVCelem = []
 	for i, elm in enumerate(elem):
@@ -800,15 +841,15 @@ def set_pericardium(mesh,presimFolder,heartFolder):
 
 	elemdat = []
 	for i, l in enumerate(UVCelem):
-	    if ( elem[i,4] in pcatags ):
-	        if (UVCelem[i] >= th):
-	            elemdat.append(0.0) 
-	        else: 
-	            x = UVCelem[i]
-	            x_m = th-x
-	            elemdat.append(p1*x_m**3 + p2*x_m**2 + p3*x_m + p4)
-	    else:
-	        elemdat.append(0.0)    
+		if ( elem[i,4] in pcatags ):
+			if (UVCelem[i] >= th):
+				elemdat.append(0.0) 
+			else: 
+				x = UVCelem[i]
+				x_m = th-x
+				elemdat.append(p1*x_m**3 + p2*x_m**2 + p3*x_m + p4)
+		else:
+			elemdat.append(0.0)    
 
 	np.savetxt(presimFolder+"/"+outfile, elemdat, fmt='%.8f') 
 	print("Saved pericardium scale file")
