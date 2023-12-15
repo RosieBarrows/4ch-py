@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+INPUT_heartFolder=$1
 
 scripts_path="/data/Dropbox/4ch-py"
 heart_name=${INPUT_heartFolder}
