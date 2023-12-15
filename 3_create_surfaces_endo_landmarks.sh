@@ -20,5 +20,5 @@ CMD="python main_mesh.py --meshname ${MESHNAME}
 
 eval $CMD
 
-CMD="mv ${heart_name}/raa_apex.txt ${UACFOLDER}/ra/raa_apex.txt"
-eval $CMD
+# CMD="mv ${heart_name}/raa_apex.txt ${UACFOLDER}/ra/raa_apex.txt"
+# eval $CMD
