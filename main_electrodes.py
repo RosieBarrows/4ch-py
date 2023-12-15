@@ -7,28 +7,34 @@ from functools import reduce
 from SIMULATION_library.electrode_utils import *
 from common_4ch.file_utils import *
 
+
+
 def create_SAN(heartFolder):
 	"""
 	Function to extract the sinoatrial node vtx from the atrial fibres code.
 	"""
 
-	SAN_tags_pts_ra_endo = np.loadtxt(os.path.join(heartFolder,"atrial_fibres","UAC","RA_endo","MappedScalar_SAN.dat"),dtype=float)
-	ra_endo_pts          = read_pts(os.path.join(heartFolder,"atrial_fibres","UAC","RA_endo","RA_only.pts"))
-	fourch_pts           = read_pts(os.path.join(heartFolder,"pre_simulation","myocardium_AV_FEC_BB.pts"))
+	SAN_tags_pts_ra_endo = np.loadtxt(os.path.join(heartFolder, "atrial_fibres", "UAC", "RA_endo", "MappedScalar_SAN.dat"), dtype=float)
+	ra_endo_pts = read_pts(os.path.join(heartFolder, "atrial_fibres", "UAC", "RA_endo", "RA_only.pts"))
+	fourch_pts = read_pts(os.path.join(heartFolder, "pre_simulation", "myocardium_AV_FEC_BB.pts"))
 
-	def float_to_tuple(f):
-		return tuple(round(x) for x in f)  
+	fourch_pts = np.array(fourch_pts)  # Convert to NumPy array for efficient calculations
 
-	fourch_dict = {float_to_tuple(elem): index for index, elem in enumerate(fourch_pts)}
+	def euclidean_distances(pts1, pts2):
+		return np.linalg.norm(pts1[:, np.newaxis] - pts2, axis=2)
 
 	SAN_vtx_ra_endo = np.where(SAN_tags_pts_ra_endo > 0)
 
-	SAN_pts = ra_endo_pts[SAN_vtx_ra_endo,:] 
+	SAN_pts = ra_endo_pts[SAN_vtx_ra_endo]
 
-	SAN_vtx_fourch = np.array([fourch_dict.get(float_to_tuple(san_elem)) for san_elem in SAN_pts[0]])
+	# Calculate Euclidean distances for all SAN_pts against fourch_pts
+	distances = euclidean_distances(SAN_pts, fourch_pts)
 
-	write_vtx(filename = os.path.join(os.path.join(args.heartFolder,"pre_simulation","SAN.vtx")), 
-			  vtx      = SAN_vtx_fourch)
+	# Find the indices with the minimum distance
+	SAN_vtx_fourch = np.argmin(distances, axis=1)
+
+	write_vtx(filename=os.path.join(heartFolder, "pre_simulation", "SAN.vtx"),
+				vtx=SAN_vtx_fourch)
 
 
 def find_electrode_UVC_cylinder(uvc,

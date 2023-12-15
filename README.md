@@ -68,7 +68,7 @@ Use the vtk (myocardium_fibres_l.vtk in the atrial_fibres folder) to check that 
 
 **Check that the labels in tags_presim.json match the labels in your mesh**
 
-*If you would like to change the location of the Bachmann bundle, this can be done in ./parfiles/bachmann_bundle_fec_settings.json*
+*If you would like to change the location of the Bachmann bundle, this can be done in ./parfiles/bachmann_bundle_fec_settings.json*. You can check how it should look in here https://ars.els-cdn.com/content/image/1-s2.0-S1361841518308089-mmc1.pdf.
 
 Run:  
    `bash 7_define_tags.sh`  

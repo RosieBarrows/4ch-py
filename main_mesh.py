@@ -3,6 +3,7 @@ import sys
 
 from common_4ch.json_utils import *
 from common_4ch.meshtools_utils import *
+from py_atrial_fibres.retag_utils import check_valve_planes
 
 import argparse
 import warnings
@@ -19,6 +20,13 @@ def main(args):
 
 	meshname = args.meshname
 	output_folder = args.outdir
+      
+	all_good = check_valve_planes(meshname,
+					   meshname+"_retagged",
+					   input_tags)
+
+	if not all_good:
+		meshname += "_retagged"
 
 	biatrial_folder = output_folder+'/biatrial/'
 	la_folder = output_folder+'/la/'
