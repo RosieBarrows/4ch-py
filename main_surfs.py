@@ -131,8 +131,8 @@ def main(args):
 	os.system("cp "+apexFolder+"/ra.lvapex.vtx "+surf_folder_ra+"/ra/ra.lvapex.vtx")
 	os.system("cp "+apexFolder+"/ra.rvsept_pt.vtx "+surf_folder_ra+"/ra/ra.rvsept_pt.vtx")
 
-	print(" ## Copying blank file for RAA apex ## ")
-	os.system("cp "+apexFolder+"/raa_apex.txt "+heartFolder+"/raa_apex.txt")
+	# print(" ## Copying blank file for RAA apex ## ")
+	# os.system("cp "+apexFolder+"/raa_apex.txt "+heartFolder+"/raa_apex.txt")
 
 
 if __name__ == '__main__':
