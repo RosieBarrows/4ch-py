@@ -299,7 +299,7 @@ def main(args):
         biv_subfolder=args.data_subdir # surfaces_uvc
         par_folder=args.par_folder # parfiles
         input_tags=f"{par_folder}/{args.input_tags_setup}"
-        input_bb_settings=f"{par_folder}/{args.input_bb_settings}"
+        input_bb_settings=f"{par_folder}/{args.bb_settings}"
 
         _tags(base_dir, biv_subfolder, mesh_path, meshname, input_tags, input_bb_settings, debug=False, help=myhelp)
     
