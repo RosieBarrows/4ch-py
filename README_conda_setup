@@ -1,11 +1,12 @@
 To set up conda environment to run scripts:
 
-conda create -n example_env python=3.9
+conda create -n py4ch python=3.9
 
-pip install: 	numpy
-		meshio
-		vtk
-		tqdm
-		pyvista
-		trimesh
-		scipy
+pip install: 	
+		numpy~=1.23.0
+		meshio~=5.3.4
+		vtk~=9.2.6
+		tqdm~=4.65.0
+		pyvista~=0.39.1
+		trimesh~=3.22.1
+		scipy~=1.10.1
