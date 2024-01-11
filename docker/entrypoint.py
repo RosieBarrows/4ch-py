@@ -237,7 +237,7 @@ def main(args):
     codes_d=args.dev_code_dir
     local=args.dev_run_local
 
-    not_supported_yet = ["surf2vol", "laplace_prep", "presim", "tags", "fec"]
+    not_supported_yet = []
     if mode in not_supported_yet:
         milog.warning(f"\n\nMode [{mode}] is not supported yet")
         return 
