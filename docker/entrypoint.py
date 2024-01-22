@@ -87,7 +87,7 @@ def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False
     endo_fibres_path = f"{uac_mesh_path_no_ext}.lon"
     epi_fibres_path =  f"{uac_output_folder}/{fibres_epi}.lon"
     endo_epi_laplace = f"{uac_output_folder}/{atrium}/endo_epi/phie.dat"
-    outmeshname = f"{uac_folder}/{atrium}/{output}"
+    outmeshname = f"{uac_folder}/{atrium}/{atrium}_fibres_l"
 
     if debug: milog.debug(f"Importing surf2vol function")
     from common_4ch.process_handler import surf_to_volume
