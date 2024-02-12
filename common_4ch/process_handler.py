@@ -306,5 +306,83 @@ def split_fec(directory, input_tags_setup, lvrv_tags, mesh_path_no_ext, debug=Fa
     if debug: milog.info(f"COMMAND: {cmd}")
     os.system(cmd)
 
+def main_mesh(base_dir, meshname, surface, input_tags_setup, raa_apex_file, output_folder, debug=False) : 
+    """
+    Moves things around and sets up the endo/epi parts of the mesh.
+    Deals with the landmarks of the atria
+
     
+    """
+
+    if surface not in ["epi", "endo"]:
+        raise ValueError(f"surface should be either 'epi' or 'endo', not {surface}")
+
+    mesh = fu.pjoin(base_dir, meshname)
+    input_tags = load_json(input_tags_setup)
+    output_folder = fu.pjoin(base_dir, output_folder)
+
+    la_folder = fu.pjoin(output_folder, "la")
+    biatrial_folder = fu.pjoin( output_folder, "biatrial")
+    ra_folder = fu.pjoin(output_folder, "ra")
+
+    mymkdir(biatrial_folder)
+    mymkdir(la_folder)
+    mymkdir(ra_folder)
+
+    meshtool_extract_biatrial(mesh, output_folder, input_tags)
+    meshtool_extract_LA(output_folder, input_tags) 
+    meshtool_extract_RA(output_folder, input_tags)
+
+    meshtool_extract_surfaces(mesh, output_folder, input_tags, export_sup_inf=True, rm_vv_from_aa=True, surface=surface)
+    export_vtk_meshes_caroline(output_folder, raa_apex_file=None, surface=surface)
+
+    landmarks_folder = fu.pjoin(output_folder, "Landmarks")
+
+    mymkdir(landmarks_folder)
+    mymkdir(fu.pjoin(landmarks_folder, "LA"))
+    mymkdir(fu.pjoin(landmarks_folder, "RA"))
+
+    cp_files = [
+        (fu.pjoin(output_folder, "LA_epi/prodLaLandmarks.txt"), fu.pjoin(landmarks_folder, "LA/prodRaLandmarks.txt")), 
+        (fu.pjoin(output_folder, "LA_epi/prodLaRegion.txt"), fu.pjoin(landmarks_folder, "LA/prodRaRegion.txt")), 
+        (fu.pjoin(output_folder, "RA_epi/prodRaLandmarks.txt"),fu.pjoin(landmarks_folder, "RA/")), 
+        (fu.pjoin(output_folder, "RA_epi/prodRaRegion.txt"), fu.pjoin(landmarks_folder, "RA/"))
+    ]
+
+    for src, dst in cp_files:
+        mycp(src, dst, debug)
+
+    myrm(fu.pjoin(output_folder, "tmp"))
+
+    recompute_raa_base(output_folder, raa_apex_file, fu.pjoin(output_folder, "RA_epi/prodRaRegion.txt"), scale=0.001, surface=surface)
+    
+    scale_landmarks(fu.pjoin(output_folder, "LA_epi/prodLaLandmarks.txt"), scale=0.001)
+    scale_landmarks(fu.pjoin(output_folder, "LA_epi/prodLaRegion.txt"), scale=0.001)
+
+    cp_files = [
+        (fu.pjoin(output_folder, "LA_epi/prodLaLandmarks.txt"), fu.pjoin(output_folder, "LA_endo/prodLaLandmarks.txt")), 
+        (fu.pjoin(output_folder, "LA_epi/prodLaRegion.txt"), fu.pjoin(output_folder, "LA_endo/prodLaRegion.txt")), 
+        (fu.pjoin(output_folder, "LA_epi/prodLaLandmarks.txt"), fu.pjoin(landmarks_folder, "LA/prodRaLandmarks.txt")), 
+        (fu.pjoin(output_folder, "LA_epi/prodLaRegion.txt"), fu.pjoin(landmarks_folder, "LA/prodRaRegion.txt")),
+        (fu.pjoin(output_folder,"RA_epi/prodRaLandmarks.txt"),fu.pjoin(output_folder,"RA_endo/prodRaLandmarks.txt")),
+        (fu.pjoin(output_folder,"RA_epi/prodRaRegion.txt"),fu.pjoin(output_folder,"RA_endo/prodRaRegion.txt")),
+        (fu.pjoin(output_folder,"RA_epi/prodRaLandmarks.txt"),fu.pjoin(output_folder,"Landmarks/RA/")),
+        (fu.pjoin(output_folder,"RA_epi/prodRaRegion.txt"),fu.pjoin(output_folder,"Landmarks/RA/"))
+    ]
+
+    for src, dst in cp_files:
+        mycp(src, dst, debug)
+    
+    def meshtool_convert(imsh, omsh, ofmt="carp_txt") :
+        cmd = f"meshtool convert -imsh={imsh} -omsh={omsh} -ofmt={ofmt}"
+        if debug: 
+            milog.info(f"COMMAND: {cmd}")
+        os.system(cmd)
+    
+    meshtool_convert(fu.pjoin(output_folder, "LA_endo/LA_endo.vtk"), fu.pjoin(output_folder, "LA_endo/LA_only"))
+    meshtool_convert(fu.pjoin(output_folder, "LA_epi/LA_epi.vtk"), fu.pjoin(output_folder, "LA_epi/LA_only"))
+    meshtool_convert(fu.pjoin(output_folder, "RA_endo/RA_endo.vtk"), fu.pjoin(output_folder, "RA_endo/RA_only"))
+    meshtool_convert(fu.pjoin(output_folder, "RA_epi/RA_epi.vtk"), fu.pjoin(output_folder, "RA_epi/RA_only"))
+
+
 

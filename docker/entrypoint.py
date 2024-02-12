@@ -224,6 +224,8 @@ def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug=Fals
 
     split_fec(mesh_path_no_ext, input_tags_setup, lvrv_tags, debug)
 
+# def _landmarks(args, debug=False, help=False) :
+
 
 def main(args):
 
@@ -291,7 +293,7 @@ def main(args):
             if not surf_endo.endswith('.surf'): surf_endo += '.surf'
             if not surf_epi.endswith('.surf'): surf_epi += '.surf'
 
-        _laplace_prep(base_dir, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=myhelp)
+        _laplace_prep(base_ddirectory, meshname, surface, input_tags_setup, raa_apex_file, outdir,ir, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=myhelp)
     
     elif mode == "tags": 
         meshname=args.meshname # myocardium_fibres_l 
@@ -320,19 +322,19 @@ def main(args):
         lvrv_tags = f"{args.par_folder}/{args.lvrv_tags}"
 
         _fec(base_dir, subfolder, meshname, input_tags_setup, lvrv_tags, debug=False, help=myhelp)
-
-
+    elif mode == "landmarks":
+        pass
 
    
 if __name__ == '__main__':
     input_parser = argparse.ArgumentParser(prog="docker run --rm --volume=/path/to/data:/data cemrg/4ch:TAG",
                                            description="4ch docker container entrypoint",
-                                           usage="%(prog)s [surfs|correctfibres|surf2vol|laplace_prep|tags|presim|fec] [options]",
+                                           usage="%(prog)s [surfs|correctfibres|surf2vol|laplace_prep|landmarks|tags|presim|fec] [options]",
                                            epilog="$ docker run cemrg/4ch:TAG MODE help \n# for specific help about the operation mode")
     input_parser.add_argument("operation",
                               metavar="mode_of_operation",
                               choices=["surfs", "correctfibres", "surf2vol", "laplace_prep",
-                                       "presim", "tags", "fec"],
+                                       "presim", "tags", "fec", "landmarks"],
                               type=str, help="Modes of operation [surfs|correctfibres|surf2vol|laplace_prep|tags|presim|fec]")
 
     input_parser.add_argument("help", nargs='?', type=bool, default=False, help="Help page specific to each mode")
