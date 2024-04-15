@@ -18,7 +18,7 @@ print('Reading element centres...')
 elemC = np.loadtxt(mshName+'_elem_centres.pts',dtype=float,skiprows=1)
 print('Done...')
 
-to_correct = np.where(np.abs(lon[:,2])<1e-6)[0]
+to_correct = np.where(np.abs(lon[:,2])==0)[0]
 print('Found '+str(to_correct.shape[0])+' elements to correct')
 
 lon_corrected = copy.deepcopy(lon)
@@ -29,9 +29,8 @@ for idx in to_correct:
 	d = np.linalg.norm(elemC[good_elements,:] - elemC[idx,:],axis=1)
 	closest = good_elements[np.where(d == np.min(d))[0]]
 	lon_corrected[idx,:] = lon[closest,:]
-to_correct = np.where(np.abs(lon_corrected[:,2])<1e-6)[0]
+to_correct = np.where(np.abs(lon_corrected[:,2])==0)[0]
 
 print('Left to correct '+str(to_correct.shape[0]))
-print('Correcting fibre orientation...')
 
 np.savetxt(mshName+'_corrected.lon',lon_corrected,fmt="%g",header='2',comments='')
