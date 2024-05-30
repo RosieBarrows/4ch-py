@@ -24,5 +24,5 @@ COPY . /code/
 WORKDIR /code/
 
 CMD ["-h"]
-ENTRYPOINT ["/opt/venv/bin/python3", "-u", "/code/docker/entrypoint.py"]
+ENTRYPOINT ["/opt/venv/bin/python3", "-u", "/code/docker/entrypoint_script.py"]
 

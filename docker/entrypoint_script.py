@@ -8,7 +8,7 @@ from common_4ch.file_utils import pjoin
 from common_4ch.config import configure_logging
 milog = configure_logging(log_name="cemrg/4ch")
 
-def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myocardium_OUT/myocardium", debug=False, help=False): 
+def _surfs(args, debug=False, help=False): 
     """
     Mode of operation: surfs
     Extract surfaces from the mesh using meshtool
@@ -30,11 +30,13 @@ def _surfs(directory, input_tags_setup, apex_septum_setup, meshname="meshing/myo
     if debug :  milog.debug(f"Importing extract_surfs function")
     from common_4ch.process_handler import extract_surfs
 
-    print(os.listdir(directory))
+    directory = args.base_dir
+    input_tags_setup = pjoin(directory, args.par_folder, args.input_tags_setup)
+    apex_septum_setup = pjoin(directory, args.par_folder, args.apex_septum_setup)
 
-    extract_surfs(directory, input_tags_setup, apex_septum_setup, meshname, debug=False)
+    extract_surfs(directory, input_tags_setup, apex_septum_setup, args.meshname, debug)
 
-def _correct_fibres(directory, mesh_path, debug=False, help=False) :
+def _correct_fibres(args, debug=False, help=False) :
     """
     Mode of operation: correctfibres
     Correct the fibres
@@ -53,9 +55,12 @@ def _correct_fibres(directory, mesh_path, debug=False, help=False) :
     if debug :  milog.debug(f"Importing correct_fibres function")
     from common_4ch.process_handler import correct_fibres 
 
+    directory = args.base_dir
+    mesh_path = args.mesh_path
+
     correct_fibres(f"{directory}/{mesh_path}") 
 
-def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False, help=False) :
+def _surf2vol(args, debug=False, help=False) :
     """
     Mode of operation: surf2vol
     Convert surfaces to volume, including fibres orientations using an endo-to-epi laplace field.
@@ -78,14 +83,16 @@ def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False
     if help :
         print(_surf2vol.__doc__)
         return
+    
+    atrium = args.atrium
 
-    uac_folder = f"{directory}/{mesh_path}"
+    uac_folder = f"{args.base_dir}/{args.mesh_path}"
     uac_output_folder = f"{uac_folder}/{atrium.upper()}_endo"
     
     mesh_path_no_ext = f"{uac_folder}/{atrium}/{args.meshname}"
-    uac_mesh_path_no_ext = f"{uac_output_folder}/{fibres_endo}"
+    uac_mesh_path_no_ext = f"{uac_output_folder}/{args.fibres_endo}"
     endo_fibres_path = f"{uac_mesh_path_no_ext}.lon"
-    epi_fibres_path =  f"{uac_output_folder}/{fibres_epi}.lon"
+    epi_fibres_path =  f"{uac_output_folder}/{args.fibres_epi}.lon"
     endo_epi_laplace = f"{uac_output_folder}/{atrium}/endo_epi/phie.dat"
     outmeshname = f"{uac_folder}/{atrium}/{atrium}_fibres_l"
 
@@ -94,7 +101,7 @@ def _surf2vol(directory, atrium, fibres_endo, fibres_epi, mesh_path, debug=False
 
     surf_to_volume(mesh_path_no_ext, uac_mesh_path_no_ext, endo_fibres_path, epi_fibres_path, endo_epi_laplace, outmeshname, debug)
 
-def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=False) :
+def _laplace_prep(args, debug=False, help=False) :
     """
     Mode of operation: laplace_prep 
     Prepare the laplace field for the endo-to-epi fibres orientation
@@ -117,17 +124,19 @@ def _laplace_prep(directory, atrium, surf_endo, surf_epi, mesh_path, debug=False
     if help :
         print(_laplace_prep.__doc__)
         return
+    
+    atrium = args.atrium
 
-    uac_folder = f"{directory}/{mesh_path}"
-    endo_surf_path = f"{uac_folder}/{atrium}/{surf_endo}"
-    epi_surf_path = f"{uac_folder}/{atrium}/{surf_epi}"
+    uac_folder = f"{args.base_dir}/{args.mesh_path}"
+    endo_surf_path = f"{uac_folder}/{atrium}/{args.surf_endo}"
+    epi_surf_path = f"{uac_folder}/{atrium}/{args.surf_epi}"
 
     if debug: milog.debug(f"Importing laplace_prep function")
     from common_4ch.process_handler import laplace_preparation
 
     laplace_preparation(endo_surf_path, epi_surf_path, debug)
 
-def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_settings, debug=False, help=False) :
+def _tags(args, debug=False, help=False) :
     """
     Mode of operation: tags
     Create the tags 
@@ -151,20 +160,21 @@ def _tags(directory, subfolder, mesh_path, meshname, input_tags_setup, input_bb_
         print(_tags.__doc__)
         return
     
-    presim_folder = f"{directory}/pre_simulation"
-    biv_folder = f"{directory}/{subfolder}/BiV"
-    la_folder = f"{directory}/{subfolder}/la"
-    ra_folder = f"{directory}/{subfolder}/ra"
+    presim_folder = f"{args.base_dir}/pre_simulation"
+    biv_folder = f"{args.base_dir}/{args.data_subdir}/BiV"
+    la_folder = f"{args.base_dir}/{args.data_subdir}/la"
+    ra_folder = f"{args.base_dir}/{args.data_subdir}/ra"
 
-    mesh_path_no_ext = f"{directory}/{mesh_path}/{meshname}"
-
+    mesh_path_no_ext = f"{args.base_dir}/{args.mesh_path}/{args.meshname}"
+    input_tags = pjoin(args.par_folder, args.input_tags_setup)
+    input_bb = pjoin(args.par_folder, args.input_bb_settings)
 
     if debug :  milog.debug(f"Importing create_tags function")
     from common_4ch.process_handler import create_tags
 
-    create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags_setup, input_bb_settings, debug)
+    create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ext, input_tags, input_bb, debug)
 
-def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug=False, help=False) :
+def _surfs_presim(args, debug=False, help=False) :
     """
     Mode of operation: surfs_presim
     Create the surfaces for the pre-simulation
@@ -188,15 +198,20 @@ def _surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex
         print(_surfs_presim.__doc__)
         return
     
-    la_folder = f"{directory}/{subfolder}_LA"
-    ra_folder = f"{directory}/{subfolder}_RA"
+    la_folder = f"{args.base_dir}/{args.data_subdir}_LA"
+    ra_folder = f"{args.base_dir}/{args.data_subdir}_RA"
+
+    input_tags_setup = pjoin(args.par_folder, args.input_tags_setup)
+    map_settings = pjoin(args.par_folder, args.map_settings)
+    fch_apex = pjoin(args.par_folder, args.fch_apex)
+    fch_sa = pjoin(args.par_folder, args.fch_sa)
 
     if debug :  milog.debug(f"Importing surf_presim function")
     from common_4ch.process_handler import surf_presim
 
-    surf_presim(directory, la_folder, ra_folder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d, debug)
+    surf_presim(args.base_dir, la_folder, ra_folder, input_tags_setup, map_settings, fch_apex, fch_sa, args.dev_code_dir, debug)
 
-def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug=False, help=False) :
+def _fec(args, debug=False, help=False) :
     """
     Mode of operation: fec
     Split the fast endocardial conduction zone (FEC))
@@ -217,7 +232,9 @@ def _fec(directory, mesh_path, meshname, input_tags_setup, lvrv_tags, debug=Fals
         print(_fec.__doc__)
         return
     
-    mesh_path_no_ext = f"{directory}/{mesh_path}/{meshname}"
+    mesh_path_no_ext = f"{args.base_dir}/{args.mesh_path}/{args.meshname}"
+    input_tags_setup = pjoin(args.par_folder, args.input_tags_setup)
+    lvrv_tags = pjoin(args.par_folder, args.lvrv_tags)
 
     if debug :  milog.debug(f"Importing split_fec function")
     from common_4ch.process_handler import split_fec
@@ -231,10 +248,11 @@ def _landmarks(args, debug=False, help=False) :
 
     Parameters:
     --meshname: name of the mesh (without extension, e.g myocardium)
-    --mesh-path: subfolder to UAC mesh folders (e.g 'meshing/myocardium_OUT' )
+    --surface: name of the surface {'endo', 'epi'}
     --par-folder: name of the subfolder containing the paraview files (e.g parfiles)
     --input-tags-setup: name of the input tags setup JSON file (e.g tags_presim.json)
-    --lvrv-tags: name of the map settings JSON file (e.g map_settings.json)
+    --raa-apex-file: relative path to base_dir of the file containing the apex coordinates (e.g raa_apex.txt)
+    --output-folder: relative path to base_dir of the output folder
 
     Usage:
     landmarks --meshname myocardium --mesh-path meshing/myocardium_OUT --par-folder parfiles --input-tags-setup tags_presim.json --lvrv-tags lvrv_tags.json 
@@ -244,9 +262,18 @@ def _landmarks(args, debug=False, help=False) :
         print(_landmarks.__doc__)
         return
     
+    if debug :  milog.debug(f"Importing main_mesh function")
     from common_4ch.process_handler import main_mesh 
+
+    input_tags = pjoin(args.base_dir, args.par_folder, args.input_tags_setup)
+    raa_apex_file = pjoin(args.base_dir, args.raa_apex_file)
+    if args.output_folder == "":
+        output_folder = pjoin(args.base_dir, "atrial_fibres/UAC")
+    
+    output_folder = pjoin(args.base_dir, args.output_folder)
+
     # main_mesh(base_dir, meshname, surface, input_tags_setup, raa_apex_file, output_folder, debug=False)
-    main_mesh(args.base_dir, args.meshname, args.surface, args.input_tags_setup, args.raa_apex_file, args.output_folder, debug=False)
+    main_mesh(args.base_dir, args.meshname, args.surface, input_tags, raa_apex_file, output_folder, debug=False)
 
 def main(args):
 
@@ -254,11 +281,7 @@ def main(args):
 
     mode=args.operation
     myhelp=args.help
-    output=args.output
-    debug=args.debug
-    base_dir=args.dev_base_dir # default=/data
-    codes_d=args.dev_code_dir
-    local=args.dev_run_local
+    mydebug=args.debug
 
     not_supported_yet = []
     if mode in not_supported_yet:
@@ -266,86 +289,28 @@ def main(args):
         return 
 
     if mode == "surfs":
-        if myhelp:
-            print(_surfs.__doc__)
-            return
-        
-        par_folder=args.par_folder
-        
-        input_tags=pjoin(base_dir, par_folder, args.input_tags_setup)
-        apex_septum=pjoin(base_dir, par_folder, args.apex_septum_setup)
-        _surfs(base_dir, input_tags, apex_septum, args.meshname, debug=False, help=myhelp)
+        _surfs(args, mydebug, myhelp)
     
     elif mode == "correctfibres": 
-        mesh_path=args.mesh_path
-        _correct_fibres(base_dir, mesh_path, debug=False, help=myhelp)
+        _correct_fibres(args, mydebug, myhelp)
 
     elif mode == "surf2vol":
-        
-        atrium=args.atrium
-        mesh_path=args.mesh_path
-        fibres_endo=args.file_endo
-        fibres_epi=args.file_epi
-
-        arg_list = [atrium, mesh_path, fibres_endo, fibres_epi]
-        if None in arg_list:
-            milog.error("Please provide the endo and epi fibre files")
-            myhelp = True 
-        else :
-            if fibres_endo.endswith('.lon'):
-                fibres_endo = fibres_endo[:-4]
-            if fibres_epi.endswith('.lon'):
-                fibres_epi = fibres_epi[:-4]
-
-        _surf2vol(base_dir, atrium, fibres_endo, fibres_epi, mesh_path, debug=False, help=myhelp)
+        _surf2vol(args, mydebug, myhelp)
     
     elif mode == "laplace_prep":
-
-        atrium=args.atrium
-        mesh_path=args.mesh_path
-        surf_endo=args.file_endo
-        surf_epi=args.file_epi
-
-        arg_list = [atrium, mesh_path, surf_endo, surf_epi]
-        if None in arg_list:
-            milog.error("Please provide the endo and epi surface files")
-            myhelp = True
-        else :
-            if not surf_endo.endswith('.surf'): surf_endo += '.surf'
-            if not surf_epi.endswith('.surf'): surf_epi += '.surf'
-
-        _laplace_prep(base_ddirectory, meshname, surface, input_tags_setup, raa_apex_file, outdir,ir, atrium, surf_endo, surf_epi, mesh_path, debug=False, help=myhelp)
+        _laplace_prep(args, mydebug, myhelp)
     
     elif mode == "tags": 
-        meshname=args.meshname # myocardium_fibres_l 
-        mesh_path=args.mesh_path # atrial_fibres 
-        biv_subfolder=args.data_subdir # surfaces_uvc
-        par_folder=args.par_folder # parfiles
-        input_tags=f"{par_folder}/{args.input_tags_setup}"
-        input_bb_settings=f"{par_folder}/{args.bb_settings}"
-
-        _tags(base_dir, biv_subfolder, mesh_path, meshname, input_tags, input_bb_settings, debug=False, help=myhelp)
+        _tags(args, mydebug, myhelp)
     
     elif mode == "presim": 
-        #_surfs_presim(directory, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, code_d="/code", debug=False, help=False)
-        subfolder = args.data_subdir
-        input_tags_setup = f"{args.par_folder}/{args.input_tags_setup}"
-        map_settings = f"{args.par_folder}/{args.map_settings}"
-        fch_apex = f"{args.par_folder}/{args.fch_apex}"
-        fch_sa = f"{args.par_folder}/{args.fch_sa}"
-
-        _surfs_presim(base_dir, subfolder, input_tags_setup, map_settings, fch_apex, fch_sa, codes_d, debug=False, help=myhelp)
+        _surfs_presim(args, mydebug, myhelp)
 
     elif mode == "fec":
-        subfolder = args.mesh_path
-        meshname = args.meshname
-        input_tags_setup = f"{args.par_folder}/{args.input_tags_setup}"
-        lvrv_tags = f"{args.par_folder}/{args.lvrv_tags}"
+        _fec(args, mydebug, myhelp)
 
-        _fec(base_dir, subfolder, meshname, input_tags_setup, lvrv_tags, debug=False, help=myhelp)
     elif mode == "landmarks":
-        pass
-
+        _landmarks(args, mydebug, myhelp)
    
 if __name__ == '__main__':
     input_parser = argparse.ArgumentParser(prog="docker run --rm --volume=/path/to/data:/data cemrg/4ch:TAG",
@@ -360,30 +325,39 @@ if __name__ == '__main__':
 
     input_parser.add_argument("help", nargs='?', type=bool, default=False, help="Help page specific to each mode")
 
-    input_parser.add_argument("--par-folder", metavar="parameter_files", nargs='?', type=str, help="Subfolder containing parameter files")
-    input_parser.add_argument("--input-tags-setup", metavar="parameter_files", nargs='?', type=str)
-    input_parser.add_argument("--apex-septum-setup", metavar="parameter_files", nargs='?', type=str)
-    input_parser.add_argument("--bb-settings", metavar="parameter_files", nargs='?', type=str, help="Bachmann bundle settings file")
-    input_parser.add_argument("--map-settings", metavar="parameter_files", nargs='?', type=str, help="Map settings file")
-    input_parser.add_argument("--fch-apex", metavar="parameter_files", nargs='?', type=str, help="Apex file")
-    input_parser.add_argument("--fch-sa", metavar="parameter_files", nargs='?', type=str, help="Septal annulus file")
-    input_parser.add_argument("--lvrv-tags", metavar="parameter_files", nargs='?', type=str, help="JSON file with input tags settings for split FEC")
+    common_group = input_parser.add_argument_group("Common options", description="Options available two or more modes")
+    common_group.add_argument("--meshname", metavar="meshname", nargs='?', type=str, default="meshing/myocardium_OUT/myocardium")
+    common_group.add_argument("--mesh-path", metavar="meshpath", nargs='?', type=str, help="Relative folder to base dir where mesh is stored") 
+    common_group.add_argument("--data-subdir", metavar="datasubfolder", nargs='?', type=str, help="Subfolder containing data files (modes: tags, presim)")
+    common_group.add_argument("--output", metavar="filename", nargs='?', type=str, default="")
 
-    input_parser.add_argument("--meshname", metavar="meshname", nargs='?', type=str, default="meshing/myocardium_OUT/myocardium")
-    input_parser.add_argument("--mesh-path", metavar="meshpath", nargs='?', type=str) 
-    input_parser.add_argument("--data-subdir", metavar="datasubfolder", nargs='?', type=str, help="Subfolder containing data files (see help)")
+    common_group.add_argument("--atrium", metavar="option", choices=['la', 'ra'], nargs='?', type=str, help="Atrium option (modes: surf2vol, laplace_prep)")
+    common_group.add_argument("--file-endo", metavar="filename", nargs='?', type=str, help="File specific to endo (.lon, .surf, ...); modes: surf2vol, laplace_prep")
+    common_group.add_argument("--file-epi", metavar="filename", nargs='?', type=str, help="File specific to endo (.lon, .surf, ...); modes: surf2vol, laplace_prep")
 
-    input_parser.add_argument("--atrium", metavar="option", choices=['la', 'ra'], nargs='?', type=str)
-    input_parser.add_argument("--file-endo", metavar="filename", nargs='?', type=str, help="File specific to endo (.lon, .surf, ...)")
-    input_parser.add_argument("--file-epi", metavar="filename", nargs='?', type=str, help="File specific to endo (.lon, .surf, ...)")
+    parameter_files_group = input_parser.add_argument_group("Parameter files", description="Parameter files for the different modes")
+    parameter_files_group.add_argument("--par-folder", metavar="parameter_files", nargs='?', type=str, help="Subfolder containing parameter files")
+    parameter_files_group.add_argument("--apex-septum-setup", metavar="parameter_files", nargs='?', type=str)    
+    parameter_files_group.add_argument("--input-tags-setup", metavar="parameter_files", nargs='?', type=str)
+    parameter_files_group.add_argument("--bb-settings", metavar="parameter_files", nargs='?', type=str, help="Bachmann bundle settings file")
+    parameter_files_group.add_argument("--map-settings", metavar="parameter_files", nargs='?', type=str, help="Map settings file")
+    parameter_files_group.add_argument("--fch-apex", metavar="parameter_files", nargs='?', type=str, help="Apex file")
+    parameter_files_group.add_argument("--fch-sa", metavar="parameter_files", nargs='?', type=str, help="Septal annulus file")
+    parameter_files_group.add_argument("--lvrv-tags", metavar="parameter_files", nargs='?', type=str, help="JSON file with input tags settings for split FEC")
 
-    input_parser.add_argument("--output", metavar="filename", nargs='?', type=str, default="")
+    laplace_prep_group = input_parser.add_argument_group("laplace_prep options", description="Options for laplace_prep mode")
+    laplace_prep_group.add_argument("--surf-endo", metavar="filename", nargs='?', type=str, help="Endocardial surface file")
+    laplace_prep_group.add_argument("--surf-epi", metavar="filename", nargs='?', type=str, help="Epicardial surface file")
+
+    landmarks_group = input_parser.add_argument_group("landmarks options", description="Options for landmarks mode")
+    landmarks_group.add_argument("--surface", choices=['endo', 'epi'], nargs='?', type=str, help="Surface option")
+    landmarks_group.add_argument("--raa-apex-file", metavar="filename", nargs='?', type=str, help="RAA apex file")
 
     dev_group = input_parser.add_argument_group("Developer options", description="Options only available to developers")
     dev_group.add_argument("--debug", action='store_true', help="Only show command to run")
-    dev_group.add_argument("--dev-base-dir", "-bdir", metavar="dev", nargs='?', default='/data', type=str, help="(only DEVs) Data path")
-    dev_group.add_argument("--dev-code-dir", "-code",  metavar="dev", nargs='?', default='/code', type=str, help="(only DEVs) Code path")
-    dev_group.add_argument("--dev-run-local", "-local", action='store_true', help="(only DEVs) Run locally toggle")
+    dev_group.add_argument("--base-dir", "-bdir", metavar="dev", nargs='?', default='/data', type=str, help="(only DEVs) Data path")
+    dev_group.add_argument("--code-dir", "-code",  metavar="dev", nargs='?', default='/code', type=str, help="(only DEVs) Code path")
+    dev_group.add_argument("--run-local", "-local", action='store_true', help="(only DEVs) Run locally toggle")
 
     args = input_parser.parse_args()
     
