@@ -197,7 +197,7 @@ def create_tags(presim_folder, biv_folder, la_folder, ra_folder, mesh_path_no_ex
 
     msh_av = f"{msh}_av"
     msh_fec = f"{msh}_av_fec"
-    msh_bb = f"{msh}_av_fec_bb"
+    msh_bb = f"{msh}_AV_FEC_BB"
 
     milog.info("Defining the AV separating plane")
     define_AV_separation(f"{presim_folder}/{msh}.elem", input_tags_json, input_tags_json["AV_plane"], f"{presim_folder}/{msh_av}.elem")
@@ -261,29 +261,29 @@ def surf_presim(directory, la_folder, ra_folder, input_tags_settings, map_settin
     fu.mymkdir(f"{presim_folder}/surfaces_simulation/surfaces_rings") 
     meshtool_extract_rings(msh_path, presim_folder, input_tags_json)
 
-    milog.info("Setting up the pericardium scale...")
-    set_pericardium(msh_path, presim_folder, directory)
+    # milog.info("Setting up the pericardium scale...")
+    # set_pericardium(msh_path, presim_folder, directory)
 
-    milog.info("Setting up the pericarsium for the atria ...")
-    la_mesh=f"{la_folder}/la"
-    uvcs=f"{la_mesh}/uvc/" 
+    # milog.info("Setting up the pericarsium for the atria ...")
+    # la_mesh=f"{la_folder}/la"
+    # uvcs=f"{la_mesh}/uvc/" 
 
-    cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {la_mesh} --uvcs {uvcs} --chamber la --map_settings {map_settings}"
-    if debug: milog.info(f"COMMAND: {cmd}")
-    os.system(cmd)
+    # cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {la_mesh} --uvcs {uvcs} --chamber la --map_settings {map_settings}"
+    # if debug: milog.info(f"COMMAND: {cmd}")
+    # os.system(cmd)
 
-    ra_mesh=f"{ra_folder}/ra"
-    uvcs=f"{ra_mesh}/uvc/"
+    # ra_mesh=f"{ra_folder}/ra"
+    # uvcs=f"{ra_mesh}/uvc/"
 
-    cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {ra_mesh} --uvcs {uvcs} --chamber ra --map_settings {map_settings}"
-    if debug: milog.info(f"COMMAND: {cmd}")
-    os.system(cmd)
+    # cmd=f"python3 -u {code_d}/motion_atria_BCs.py --mesh {ra_mesh} --uvcs {uvcs} --chamber ra --map_settings {map_settings}"
+    # if debug: milog.info(f"COMMAND: {cmd}")
+    # os.system(cmd)
 
-    milog.info("Combining the pericardium scaling maps for the ventricles and atria")
-    combine_elem_dats(directory, presim_folder)
+    # milog.info("Combining the pericardium scaling maps for the ventricles and atria")
+    # combine_elem_dats(directory, presim_folder)
 
-    milog.info("Setting up a folder with the simulation-ready mesh") 
-    setup_sim(directory, presim_folder, fch_apex, fch_sa)
+    # milog.info("Setting up a folder with the simulation-ready mesh") 
+    # setup_sim(directory, presim_folder, fch_apex, fch_sa)
 
 def split_fec(directory, input_tags_setup, lvrv_tags, mesh_path_no_ext, debug=False) : 
     """
