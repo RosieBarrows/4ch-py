@@ -4,10 +4,15 @@ import json
 import meshio
 import vtk
 import os
+import sys
 from vtk.util import numpy_support
 
 from common_4ch.config import configure_logging
 milog = configure_logging(log_name=__name__)
+
+def chooseplatform(): 
+	return sys.platform
+
 
 class NumpyEncoder(json.JSONEncoder):
 	def default(self, obj):
@@ -20,13 +25,19 @@ class NumpyEncoder(json.JSONEncoder):
 		return json.JSONEncoder.default(self, obj)
 
 def mycp(src,dst, debug=False):
-	cmd = f"cp {src} {dst}"
+	if chooseplatform() == 'win32':
+		cmd = f"copy {src} {dst}"
+	else:
+		cmd = f"cp {src} {dst}"
 	if debug:
 		milog.info(cmd)
 	os.system(cmd)
 
 def mymv(src,dst, debug=False):
-	cmd = f"mv {src} {dst}"
+	if chooseplatform() == 'win32':
+		cmd = f"move {src} {dst}"
+	else:
+		cmd = f"mv {src} {dst}"
 	if debug:
 		milog.info(cmd)
 	os.system(cmd)
@@ -44,7 +55,10 @@ def mymkdir(path, full_path=False, debug=False):
 	os.system(cmd)
 
 def myrm(path, debug=False):
-	cmd = f"rm -rf {path}"
+	if chooseplatform() == 'win32':
+		cmd = f"rmdir /s /q {path}"
+	else:
+		cmd = f"rm -rf {path}"
 	if debug:
 		milog.info(cmd)
 	os.system(cmd)

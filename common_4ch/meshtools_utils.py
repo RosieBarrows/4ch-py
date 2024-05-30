@@ -61,7 +61,8 @@ def keep_n_connected_components(cc_list, folder, keep_n=2) :
 			cc_list[ix] = cc_list_old[sorted_size[-ix-1]]
 		
 		for ix in range(len(cc_list)-2):
-			os.system(f"rm {folder}/{cc_list_old[sorted_size[ix]]}.*")
+			myrm(f"{folder}/{cc_list_old[sorted_size[ix]]}.*")
+			# os.system(f"rm {folder}/{cc_list_old[sorted_size[ix]]}.*")
 	
 	return cc_list
 
@@ -842,8 +843,8 @@ def meshtool_extract_la_surfaces(mesh,surf_folder,input_tags):
 	milog.info('Renaming connected components...')
 	formats = ["nod","eidx","elem","lon","pts"]
 	for f in formats:
-		mymv(f"{surf_folder}/tmp/{epi_endo_CC[epi]}.{f}", f"{surf_folder}/tmp/la.epi.{f}")
-		mymv(f"{surf_folder}/tmp/{epi_endo_CC[endo]}.{f}", f"{surf_folder}/tmp/la.lvendo.{f}")
+		mymv(pjoin(tmp_folder, f"{epi_endo_CC[epi]}.{f}"), pjoin(tmp_folder, f"la.epi.{f}"))
+		mymv(pjoin(tmp_folder, f"{epi_endo_CC[endo]}.{f}"), pjoin(tmp_folder, f"la.lvendo.{f}"))
 
 def meshtool_extract_ra_base(mesh,surf_folder,input_tags):
 	tags_list_ra_string = get_tags_from_setup(input_tags, ["RA"])
