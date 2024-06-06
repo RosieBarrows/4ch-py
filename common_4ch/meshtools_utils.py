@@ -60,7 +60,7 @@ def keep_n_connected_components(cc_list, folder, keep_n=2) :
 		for ix in range(keep_n) :
 			cc_list[ix] = cc_list_old[sorted_size[-ix-1]]
 		
-		for ix in range(len(cc_list)-2):
+		for ix in range(len(cc_list)-keep_n):
 			myrm(f"{folder}/{cc_list_old[sorted_size[ix]]}.*")
 			# os.system(f"rm {folder}/{cc_list_old[sorted_size[ix]]}.*")
 	
