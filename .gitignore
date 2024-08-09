@@ -2,3 +2,15 @@ venv_barrows_preprocessing
 *pyc
 *txt
 */*cach*
+0_extract_surfs.sh
+1_calculate_UVCs.sh
+2_add_vent_fibres.sh
+0_extract_surfs.sh
+main_surfs.py
+main_electrodes_new
+main_mesh_v2.py
+main_surfs_post_seg.py
+main_surfs.py
+remake_landmarks_files.py
+visualize_landmarks.py
+common_4ch/__pycache__/meshtools_utils.cpython-39.pyc
