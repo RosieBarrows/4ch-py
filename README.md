@@ -59,7 +59,7 @@ Run:
 **Check that the labels in tags_atrial_fibres.json match the labels in your mesh.**
 
 Run:  
-   `bash 3_create_surfaces_endo_landmarks.sh`  
+   `bash 3_create_surfaces_endo_landmarks.sh`	(CHANGE SCRIPTS_PATH AT TOP OF THIS SCRIPT)  
    `bash 4_la_4ch_endo.sh`  
    `bash 5_ra_4ch_endo.sh`  
    `bash 6_map_2d_to_3d.sh`
