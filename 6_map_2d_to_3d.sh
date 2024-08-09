@@ -1,10 +1,10 @@
 #!/bin/bash
 
-heart_folder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+heart_folder=$1
 
 FCH="${heart_folder}/surfaces_uvc/myocardium_bayer_60_-60"
 UACFOLDER="${heart_folder}/atrial_fibres/UAC/"
-
+BB_settings=${heart_folder}/parfiles
 # ---------------------------------------------------------------------------------
 
 CMD="python3 main_laplace.py --meshname ${UACFOLDER}/la/la 
@@ -19,7 +19,8 @@ CMD="python3 main_laplace.py --meshname ${UACFOLDER}/ra/ra
 							--outdir ${UACFOLDER}/ra/endo_epi/"
 eval $CMD
 
-# ---------------------------------------------------------------------------------
+# # --------------------------------------------------------------------------------
+
 
 CMD="python3 main_surf_to_volume.py --meshname ${UACFOLDER}/la/la
 								   --meshname_uac ${UACFOLDER}/LA_endo/Fibre_endo_l
@@ -94,3 +95,6 @@ eval $CMD
 
 CMD="meshtool convert -imsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -omsh=${heart_folder}/atrial_fibres/myocardium_fibres_l.vtk"
 eval $CMD
+
+mkdir -p ${heart_folder}/parfiles
+cp ./parfiles/bachmann_bundle_fec_settings.json $BB_settings

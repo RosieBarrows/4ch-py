@@ -2,8 +2,10 @@
 
 clear
 
-INPUT_heartFolder=$(cat /home/croderog/Desktop/IC_projects/barrows_preprocessing/parfiles/heartFolder.txt)
-fascicles_settings=$INPUT_heartFolder/fascicles_settings.json
+INPUT_heartFolder=$1
+fascicles_settings=$INPUT_heartFolder/parfiles/fascicles_settings.json
+
+cp ./parfiles/fascicles_settings.json $fascicles_settings
 
 CMD="python main_electrodes.py --heartFolder ${INPUT_heartFolder}
 						--fascicles_settings ${fascicles_settings}

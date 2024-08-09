@@ -47,8 +47,8 @@ def laplace_endo2elem(meshname,
 				phi_el[i] = 1
 				flag=1
 			if phi[tt[k]] == 0:
-			    phi_el[i] = 0
-			    flag=1
+				phi_el[i] = 0
+				flag=1
 		if flag==0:
 			phi_el[i]=np.mean(phi[tt])	
 
@@ -614,6 +614,46 @@ def separate_FEC_lvrv(elem_file,
 	elem_fec[:,-1] = new_tags
 	write_tets(elem_output,elem_fec)
 
+def separate_FEC_lvrv_sets(elem_file, fec_elem_file, LV_endo_surf, RV_endo_surf, elem_output, original_tags_settings, new_tags_settings):
+
+    print('Reading original tags...')
+    elem = read_tets(elem_file)
+    original_tags = elem[:, -1]
+    print('Done')
+
+    print('Reading fec tags...')
+    elem_fec = read_tets(fec_elem_file)
+    fec_tags = elem_fec[:, -1]
+    print('Done')
+
+    print('Reading surfaces...')
+    lv_endo = read_surf(LV_endo_surf)
+    lv_endo_vtx = set(surf2vtx(lv_endo))
+    rv_endo = read_surf(RV_endo_surf)
+    rv_endo_vtx = set(surf2vtx(rv_endo))
+    print('Done')
+
+    lv_eidx = np.where(original_tags == new_tags_settings["LV"])[0]
+    rv_eidx = np.where(original_tags == new_tags_settings["RV"])[0]
+    fec_eidx = np.where(fec_tags == original_tags_settings["FEC"])[0]
+
+    print('Extracted LV, FEC, and RV')
+
+    new_tags = copy.deepcopy(fec_tags)
+
+    for eidx in fec_eidx:
+        intersection_rv = set(elem[eidx, 0:-1]).intersection(rv_endo_vtx)
+
+        if original_tags[eidx] == 1 and not intersection_rv:
+            new_tags[eidx] = new_tags_settings["FEC_LV"]
+        elif original_tags[eidx] == 1 and intersection_rv:
+            new_tags[eidx] = new_tags_settings["FEC_SV"]
+        else:
+            new_tags[eidx] = new_tags_settings["FEC_RV"]
+
+    elem_fec[:, -1] = new_tags
+    write_tets(elem_output, elem_fec)
+
 def find_cog_surf(pts):
 	cog = np.mean(pts,axis=0)
 
@@ -780,7 +820,7 @@ def set_pericardium(mesh,presimFolder,heartFolder):
 	pcatags = [1, 2]
 	UVCptsmsh = np.zeros(len(pnts[:,0]))
 	for i, ind in enumerate(vtxsubmsh):
-	    UVCptsmsh[ind] = UVCpts[i]
+		UVCptsmsh[ind] = UVCpts[i]
 
 	UVCelem = []
 	for i, elm in enumerate(elem):
@@ -800,15 +840,15 @@ def set_pericardium(mesh,presimFolder,heartFolder):
 
 	elemdat = []
 	for i, l in enumerate(UVCelem):
-	    if ( elem[i,4] in pcatags ):
-	        if (UVCelem[i] >= th):
-	            elemdat.append(0.0) 
-	        else: 
-	            x = UVCelem[i]
-	            x_m = th-x
-	            elemdat.append(p1*x_m**3 + p2*x_m**2 + p3*x_m + p4)
-	    else:
-	        elemdat.append(0.0)    
+		if ( elem[i,4] in pcatags ):
+			if (UVCelem[i] >= th):
+				elemdat.append(0.0) 
+			else: 
+				x = UVCelem[i]
+				x_m = th-x
+				elemdat.append(p1*x_m**3 + p2*x_m**2 + p3*x_m + p4)
+		else:
+			elemdat.append(0.0)    
 
 	np.savetxt(presimFolder+"/"+outfile, elemdat, fmt='%.8f') 
 	print("Saved pericardium scale file")

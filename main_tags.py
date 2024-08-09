@@ -3,6 +3,7 @@ import sys
 
 import argparse
 import warnings
+import shutil
 
 from common_4ch.json_utils import *
 from common_4ch.mesh_utils import *
@@ -29,9 +30,44 @@ def main(args):
 	presimFolder = heartFolder+"/pre_simulation/"
 	os.system("mkdir "+presimFolder)
 
-	os.system("cp "+mesh+".elem "+presimFolder+"/myocardium.elem")
-	os.system("cp "+mesh+".pts "+presimFolder+"/myocardium.pts")
-	os.system("cp "+mesh+".lon "+presimFolder+"/myocardium.lon")
+	elem_source = mesh + ".elem"
+	pts_source = mesh + ".pts"
+	lon_source = mesh + ".lon"
+
+	elem_destination = os.path.join(presimFolder, "myocardium.elem")
+	pts_destination = os.path.join(presimFolder, "myocardium.pts")
+	lon_destination = os.path.join(presimFolder, "myocardium.lon")
+
+	# Copy the files with error handling
+	try:
+		shutil.copy(elem_source, elem_destination)
+		print(f"File {elem_source} copied to {elem_destination}")
+	except FileNotFoundError:
+		print(f"Error: {elem_source} not found.")
+		sys.exit(1)  # Stop the script with an exit code indicating an error
+	except Exception as e:
+		print(f"An error occurred while copying {elem_source}: {e}")
+		sys.exit(1)
+
+	try:
+		shutil.copy(pts_source, pts_destination)
+		print(f"File {pts_source} copied to {pts_destination}")
+	except FileNotFoundError:
+		print(f"Error: {pts_source} not found.")
+		sys.exit(1)
+	except Exception as e:
+		print(f"An error occurred while copying {pts_source}: {e}")
+		sys.exit(1)
+
+	try:
+		shutil.copy(lon_source, lon_destination)
+		print(f"File {lon_source} copied to {lon_destination}")
+	except FileNotFoundError:
+		print(f"Error: {lon_source} not found.")
+		sys.exit(1)
+	except Exception as e:
+		print(f"An error occurred while copying {lon_source}: {e}")
+		sys.exit(1)
 
 	MESHNAME="myocardium"
 	MESHNAME_AV="myocardium_AV"
