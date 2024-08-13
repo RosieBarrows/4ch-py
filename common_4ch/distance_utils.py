@@ -240,7 +240,7 @@ def find_point_along_direction(points,
 							   mode="furthest"):
 	
 	if mode=="furthest":
-		dot_prod = 0.
+		dot_prod = -1e10
 		idx = None
 		for v in vtx:
 			dot_prod_tmp = np.dot(points[v,:]-cog,n)	

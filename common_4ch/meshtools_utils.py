@@ -67,8 +67,13 @@ def keep_n_connected_components(cc_list, folder, keep_n=2) :
 	return cc_list
 
 # meshtool wrappers 
-def extract_surface_wrapper(meshname, surf_path, tag_base, to_print=True) :
-	cmd = f"meshtool extract surface -msh={meshname} -surf={surf_path} -ofmt=vtk -op={tag_base}"
+def extract_surface_wrapper(meshname, surf_path, tag_base, ofmt_str='vtk', to_print=True) :
+	CHOICES = ['vtk','carp_txt']
+	if ofmt_str not in CHOICES:
+		milog.exception(f"ofmt_str must be one of {CHOICES}")
+		raise Exception(f"ofmt_str must be one of {CHOICES}")
+	
+	cmd = f"meshtool extract surface -msh={meshname} -surf={surf_path} -ofmt={ofmt_str} -op={tag_base}"
 	if to_print :
 		milog.info(f"{cmd}")
 	os.system(cmd)
@@ -1017,7 +1022,7 @@ def meshtool_extract_peri(mesh,presimFolder,input_tags):
 											 	  "LAA_ring","SVC_ring","IVC_ring",
 											 	  "LSPV_ring","LIPV_ring","RSPV_ring","RIPV_ring", "FEC"])
 
-	extract_surface_wrapper(mesh, f"{presimFolder}/peri_surface", f"{tags_list_peri_string}-{tags_list_not_peri_string}")
+	extract_surface_wrapper(mesh, f"{presimFolder}/peri_surface", f"{tags_list_peri_string}-{tags_list_not_peri_string}", ofmt_str="carp_txt")
 	os.system(f"meshtool extract unreachable -msh={presimFolder}/peri_surface.surfmesh -ifmt=carp_txt -ofmt=carp_txt -submsh={presimFolder}/peri_surface_CC")
 
 	tmp_files = os.listdir(presimFolder)
