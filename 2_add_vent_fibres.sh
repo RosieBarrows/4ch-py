@@ -2,7 +2,7 @@
 
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+INPUT_heartFolder=$1
 mesh_path="${INPUT_heartFolder}/surfaces_uvc/BiV/"
 four_chamber_path="${INPUT_heartFolder}/surfaces_uvc/"
 four_chamber_name="myocardium"
