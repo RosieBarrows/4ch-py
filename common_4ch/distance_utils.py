@@ -21,7 +21,7 @@ def calculate_rotation(ax, theta):
     R[1,2] = ( 1 - cos(theta)) * ax[1] * ax[2] - ax[0] * sin(theta);
     R[2,0] = ( 1 - cos(theta)) * ax[0] * ax[2] - ax[1] * sin(theta);
     R[2,1] = ( 1 - cos(theta)) * ax[1] * ax[2] + ax[0] * sin(theta);
-    R[2,2] = ax[2]**2 + cos(theta) * (1 - ax[2]**2);z
+    R[2,2] = ax[2]**2 + cos(theta) * (1 - ax[2]**2);
 
     return R
 
