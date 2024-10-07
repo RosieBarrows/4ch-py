@@ -1,6 +1,12 @@
 #!/bin/bash
 
-heart_folder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+if [ $# -lt 1 ] ; then
+    >&2 echo 'Insufficient arguments supplied'
+    >&2 echo 'Usage: 6_map_2d_to_3d.sh <heart_folder>'
+    exit 1
+fi
+
+heart_folder=$1
 
 FCH="${heart_folder}/surfaces_uvc/myocardium_bayer_60_-60"
 UACFOLDER="${heart_folder}/atrial_fibres/UAC/"

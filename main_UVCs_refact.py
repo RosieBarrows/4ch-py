@@ -27,15 +27,15 @@ def main(args):
 	# Calculating UVCs for the BiV mesh
 	# ----------------------------------------------------------------------------------------------
 	print(" ## Calculating UVCs for the BiV mesh ##")
-	os.system("cp "+etagsFolder+"/etags.sh "+surf_folder+"/BiV/etags.sh")
-	command_str = "mguvc --model-name "+surf_folder+"BiV/BiV --input-model biv --output-model biv --np 20 --tags-file "+surf_folder+"BiV/etags.sh --output-dir "+surf_folder+"BiV/uvc/ --laplace-solution"
+	os.system(f"cp {etagsFolder}/etags.sh {surf_folder}/BiV/etags.sh")
+	command_str = f"mguvc --model-name {surf_folder}BiV/BiV --input-model biv --output-model biv --np 20 --tags-file {surf_folder}BiV/etags.sh --output-dir {surf_folder}BiV/uvc/ --laplace-solution"
 	print(f'\n{command_str}')
 	os.system(command_str)
 
-	command_str = "GlVTKConvert -m "+surf_folder+"BiV/BiV -n "+surf_folder+"BiV/uvc/BiV.uvc_phi.dat -n "+surf_folder+"BiV/uvc/BiV.uvc_z.dat -n "+surf_folder+"BiV/uvc/BiV.uvc_ven.dat -n "+surf_folder+"BiV/uvc/BiV.uvc_rho.dat -o "+surf_folder+"BiV/uvc/uvc --trim-names"
+	command_str = f"GlVTKConvert -m {surf_folder}BiV/BiV -n {surf_folder}BiV/uvc/BiV.uvc_phi.dat -n {surf_folder}BiV/uvc/BiV.uvc_z.dat -n {surf_folder}BiV/uvc/BiV.uvc_ven.dat -n {surf_folder}BiV/uvc/BiV.uvc_rho.dat -o {surf_folder}BiV/uvc/uvc --trim-names"
 	print(f'\n{command_str}')
 	os.system(command_str)
-	command_str = "GlVTKConvert -m "+surf_folder+"BiV/BiV -n "+surf_folder+"BiV/uvc/BiV.sol_apba_lap.dat -n "+surf_folder+"BiV/uvc/BiV.sol_rvendo_lap.dat -n "+surf_folder+"BiV/uvc/BiV.sol_endoepi_lap.dat -n "+surf_folder+"/BiV/uvc/BiV.sol_lvendo_lap.dat -o "+surf_folder+"BiV/uvc/laplace --trim-names"
+	command_str = f"GlVTKConvert -m {surf_folder}BiV/BiV -n {surf_folder}BiV/uvc/BiV.sol_apba_lap.dat -n {surf_folder}BiV/uvc/BiV.sol_rvendo_lap.dat -n {surf_folder}BiV/uvc/BiV.sol_endoepi_lap.dat -n {surf_folder}/BiV/uvc/BiV.sol_lvendo_lap.dat -o {surf_folder}BiV/uvc/laplace --trim-names"
 	print(f'\n{command_str}')
 	os.system(command_str)
 
@@ -43,14 +43,14 @@ def main(args):
 	# Calculating UVCs for the la mesh
 	# ----------------------------------------------------------------------------------------------
 	print(" ## Calculating UVCs for the la mesh ##")
-	command_str = "cp "+etagsFolder+"/etags_la.sh "+surf_folder_la+"/la/etags.sh"
+	command_str = f"cp {etagsFolder}/etags_la.sh {surf_folder_la}/la/etags.sh"
 	print(f'\n{command_str}')
 	os.system(command_str)
-	command_str = "mguvc --ID=$MESH/UVC_ek --model-name "+surf_folder_la+"la/la --input-model lv --output-model lv --np 20 --tags-file "+surf_folder_la+"la/etags.sh --output-dir "+surf_folder_la+"la/uvc/ --laplace-solution --custom-apex"
+	command_str = f"mguvc --ID=$MESH/UVC_ek --model-name {surf_folder_la}la/la --input-model lv --output-model lv --np 20 --tags-file {surf_folder_la}la/etags.sh --output-dir {surf_folder_la}la/uvc/ --laplace-solution --custom-apex"
 	print(f'\n{command_str}')
 	os.system(command_str)
 
-	command_str = "GlVTKConvert -m "+surf_folder_la+"la/la -n "+surf_folder_la+"la/uvc/la.uvc_phi.dat -n "+surf_folder_la+"la/uvc/la.uvc_z.dat -n "+surf_folder_la+"la/uvc/la.uvc_ven.dat -n "+surf_folder_la+"la/uvc/la.uvc_rho.dat -o "+surf_folder_la+"la/uvc/uvc --trim-names"
+	command_str = f"GlVTKConvert -m {surf_folder_la}la/la -n {surf_folder_la}la/uvc/la.uvc_phi.dat -n {surf_folder_la}la/uvc/la.uvc_z.dat -n {surf_folder_la}la/uvc/la.uvc_ven.dat -n {surf_folder_la}la/uvc/la.uvc_rho.dat -o {surf_folder_la}la/uvc/uvc --trim-names"
 	print(f'\n{command_str}')
 	os.system(command_str)
 
@@ -58,14 +58,14 @@ def main(args):
 	# Calculating UVCs for the ra mesh
 	# ----------------------------------------------------------------------------------------------
 	print(" ## Calculating UVCs for the ra mesh ##")
-	command_str = "cp "+etagsFolder+"/etags_ra.sh "+surf_folder_ra+"/ra/etags.sh"
+	command_str = f"cp {etagsFolder}/etags_ra.sh {surf_folder_ra}/ra/etags.sh"
 	print(f'\n{command_str}')
 	os.system(command_str)
-	command_str = "mguvc --ID=$MESH/UVC_ek --model-name "+surf_folder_ra+"ra/ra --input-model lv --output-model lv --np 20 --tags-file "+surf_folder_ra+"ra/etags.sh --output-dir "+surf_folder_ra+"ra/uvc/ --laplace-solution --custom-apex"
+	command_str = f"mguvc --ID=$MESH/UVC_ek --model-name {surf_folder_ra}ra/ra --input-model lv --output-model lv --np 20 --tags-file {surf_folder_ra}ra/etags.sh --output-dir {surf_folder_ra}ra/uvc/ --laplace-solution --custom-apex"
 	print(f'\n{command_str}')
 	os.system(command_str)
 
-	command_str = "GlVTKConvert -m "+surf_folder_ra+"ra/ra -n "+surf_folder_ra+"ra/uvc/ra.uvc_phi.dat -n "+surf_folder_ra+"ra/uvc/ra.uvc_z.dat -n "+surf_folder_ra+"ra/uvc/ra.uvc_ven.dat -n "+surf_folder_ra+"ra/uvc/ra.uvc_rho.dat -o "+surf_folder_ra+"ra/uvc/uvc --trim-names"
+	command_str = f"GlVTKConvert -m {surf_folder_ra}ra/ra -n {surf_folder_ra}ra/uvc/ra.uvc_phi.dat -n {surf_folder_ra}ra/uvc/ra.uvc_z.dat -n {surf_folder_ra}ra/uvc/ra.uvc_ven.dat -n {surf_folder_ra}ra/uvc/ra.uvc_rho.dat -o {surf_folder_ra}ra/uvc/uvc --trim-names"
 	print(f'\n{command_str}')
 	os.system(command_str)
 

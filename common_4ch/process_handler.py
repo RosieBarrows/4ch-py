@@ -57,7 +57,8 @@ def extract_surfs(base_dir : str, input_tags_setup : str, apex_septum_setup : st
 
     for folder in list_of_folders:
         fu.mymkdir(folder)
-
+    
+    # Extract the base
     milog.info("Extracting the base")
     meshtool_extract_base(mesh, surf_folder, input_tags)
 
@@ -116,6 +117,20 @@ def extract_surfs(base_dir : str, input_tags_setup : str, apex_septum_setup : st
     milog.info("Copying blank files for LA apex and septum ")
     fu.mycp(fu.pjoin(apex_septum_setup, "la.lvapex.vtx"), fu.pjoin(surf_folder_la, "la/la.lvapex.vtx"), debug)
     fu.mycp(fu.pjoin(apex_septum_setup, "la.rvsept_pt.vtx"), fu.pjoin(surf_folder_la, "la/la.rvsept_pt.vtx"), debug)
+
+    # Extracting the RA mesh
+    milog.info("Extracting the right atrial mesh")
+    meshtool_extract_ra_for_UVCs(mesh, surf_folder_ra, input_tags)
+
+    milog.info("Mapping vtx files from four-chamber mesh to right atrial mesh ")
+    meshtool_map_vtx_ra(surf_folder_ra)
+    
+    milog.info("Copying blank files for RA apex and septum ")
+    fu.mycp(fu.pjoin(apex_septum_setup, "ra.lvapex.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.lvapex.vtx"), debug)
+    fu.mycp(fu.pjoin(apex_septum_setup, "ra.rvsept_pt.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.rvsept_pt.vtx"), debug)
+
+    milog.info("Copying blank file for RAA apex") 
+    fu.mycp(fu.pjoin(apex_septum_setup, "raa_apex.txt"), fu.pjoin(base_dir, "raa_apex.txt"), debug)
 
 def laplace_preparation(endo_surf_path, epi_surf_path, debug) : 
     """Prepares the mesh for the Laplace equation (outside of docker container)""" 

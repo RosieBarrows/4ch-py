@@ -4,7 +4,7 @@ import json
 import numpy as np
 from functools import reduce
 
-from SIMULATION_library.electrode_utils import *
+# from SIMULATION_library.electrode_utils import *
 from common_4ch.file_utils import *
 
 def create_SAN(heartFolder):
@@ -27,7 +27,7 @@ def create_SAN(heartFolder):
 
 	SAN_vtx_fourch = np.array([fourch_dict.get(float_to_tuple(san_elem)) for san_elem in SAN_pts[0]])
 
-	write_vtx(filename = os.path.join(os.path.join(args.heartFolder,"pre_simulation","SAN.vtx")), 
+	write_vtx(filename = os.path.join(os.path.join(heartFolder,"pre_simulation","SAN.vtx")), 
 			  vtx      = SAN_vtx_fourch)
 
 
@@ -82,6 +82,39 @@ def define_fascicles_UVC(bivnod_file,
 												fascicles_settings = fascicles_settings[f])
 
 				write_vtx(output_folder+"/"+f+".vtx", biv_nod[electrode_idx],init_row=2)
+
+def combine_electrode(vtx_file_list, vtx_file_out):
+	
+	vtx_out = []
+	for v in vtx_file_list:
+		vtx_tmp = read_vtx(v)
+		vtx_out += list(vtx_tmp)
+
+	vtx_out = np.array(vtx_out)
+	vtx_out = np.unique(vtx_out)
+
+	write_vtx(vtx_file_out,vtx_out,init_row=2)
+
+def write_pts(pts,filename):
+
+	print('Writing '+filename+'...')
+
+	assert pts.shape[1] == 3
+	with open(filename, 'w') as fp:
+		fp.write('{}\n'.format(pts.shape[0]))
+		for pnt in pts:
+			fp.write('{0[0]} {0[1]} {0[2]}\n'.format(pnt))
+	fp.close()
+
+def vtx2pts(vtx_file, pts_file):
+
+	vtx = read_vtx(vtx_file)
+	pts = read_pts(pts_file)
+
+	pts_vtx = pts[vtx,:]
+
+	write_pts(pts_vtx,vtx_file+".pts")
+
 
 def main(args):
 

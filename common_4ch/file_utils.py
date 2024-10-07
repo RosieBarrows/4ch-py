@@ -78,7 +78,7 @@ def read_pts(filename):
 
 def read_elem(filename,el_type='Tt',tags=True):
 	milog.info(f'Reading {filename}...')
-	cols_notags_dic = {'Tt':(1,2,3,4),'Tr':(1,2,3,4),'Ln':(1,2,3)}
+	cols_notags_dic = {'Tt':(1,2,3,4),'Tr':(1,2,3),'Ln':(1,2)}
 	try: 
 		cols = cols_notags_dic[el_type]
 		if tags:
@@ -238,6 +238,8 @@ def write_lon(lon,filename):
 
 def write_vtx(filename, vtx,init_row=2):
 	milog.info(f'Writing {filename}...')
+
+	print(f'\n\n\n vtx: {vtx.shape}')
 
 	with open(filename, 'w') as fd:
 		if init_row==2:

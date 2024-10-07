@@ -2,9 +2,9 @@
 
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
-input_tags="./parfiles/tags_vent_fibres.json"
-apex_septum="./parfiles/apex_septum_templates/"
+INPUT_heartFolder=$1
+input_tags="$2/tags_vent_fibres.json"
+apex_septum="$2/apex_septum_templates/"
 
 CMD="python main_surfs.py --heartFolder ${INPUT_heartFolder}
 						 	 --input_tags_setup ${input_tags}
@@ -18,3 +18,5 @@ echo " ### You must now select a point for the apex and a point for the septum o
 echo " ### Then you must select a point for apex of the right atrial appendage ###"
 echo ;
 echo ;
+
+
