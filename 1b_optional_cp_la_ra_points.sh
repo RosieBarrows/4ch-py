@@ -24,3 +24,5 @@ cp $gt_heart_folder/surfaces_uvc_LA/la/la.lvapex.vtx $INPUT_heartFolder/surfaces
 mkdir -p $INPUT_heartFolder/atrial_fibres/UAC/ra
 cp $gt_heart_folder/atrial_fibres/UAC/ra/raa_apex.txt $INPUT_heartFolder/atrial_fibres/UAC/ra/raa_apex.txt
 cp $gt_heart_folder/atrial_fibres/UAC/ra/raa_apex.txt $INPUT_heartFolder/raa_apex.txt
+
+cp $gt_heart_folder/fascicles_settings.json $INPUT_heartFolder/fascicles_settings.json

@@ -1,12 +1,23 @@
 #!/bin/bash
 
+set -euo pipefail
+
+if [ $# -lt 2 ] ; then
+	>&2 echo 'Insufficient arguments supplied'
+	>&2 echo 'Usage: 8_extract_surfs.sh <INPUT_heartFolder> <files_folder>'
+	exit 1
+fi
+
+
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+INPUT_heartFolder=$1
+files_folder=$2
+
 mesh="${INPUT_heartFolder}/atrial_fibres/myocardium_AV_FEC_BB"
 BiV_folder="${INPUT_heartFolder}/surfaces_uvc/BiV"
-input_tags="./parfiles/tags_presim.json"
-atria_map_settings="./parfiles/atria_map_settings.json"
+input_tags="$files_folder/tags_presim.json"
+atria_map_settings="$files_folder/atria_map_settings.json"
 electrodes_names="fascicles_lv.vtx,fascicles_rv.vtx,SAN.vtx"
 
 LA_folder="${INPUT_heartFolder}/surfaces_uvc_LA/la/"

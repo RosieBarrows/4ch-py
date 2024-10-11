@@ -238,9 +238,6 @@ def write_lon(lon,filename):
 
 def write_vtx(filename, vtx,init_row=2):
 	milog.info(f'Writing {filename}...')
-
-	print(f'\n\n\n vtx: {vtx.shape}')
-
 	with open(filename, 'w') as fd:
 		if init_row==2:
 			fd.write('{}\n'.format(vtx.shape[0]))

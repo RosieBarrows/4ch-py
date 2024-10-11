@@ -1,5 +1,13 @@
 #!/bin/bash
 
+set -euo pipefail
+
+if [ $# -lt 2 ] ; then
+	>&2 echo 'Insufficient arguments supplied'
+	>&2 echo 'Usage: 1_calculate_UVCs.sh <INPUT_heartFolder> <files_folder>'
+	exit 1
+fi
+
 clear
 
 INPUT_heartFolder=$1

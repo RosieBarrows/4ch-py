@@ -7,6 +7,9 @@ from functools import reduce
 # from SIMULATION_library.electrode_utils import *
 from common_4ch.file_utils import *
 
+def float_to_tuple(f, n=0):
+	mult = 10**n
+	return tuple(mult*np.floor(x/mult) for x in f)  
 def create_SAN(heartFolder):
 	"""
 	Function to extract the sinoatrial node vtx from the atrial fibres code.
@@ -16,19 +19,33 @@ def create_SAN(heartFolder):
 	ra_endo_pts          = read_pts(os.path.join(heartFolder,"atrial_fibres","UAC","RA_endo","RA_only.pts"))
 	fourch_pts           = read_pts(os.path.join(heartFolder,"pre_simulation","myocardium_AV_FEC_BB.pts"))
 
-	def float_to_tuple(f):
-		return tuple(round(x) for x in f)  
+	finished = False
+	N=0
+	count = 0
+	while not finished:
+		fourch_dict = {float_to_tuple(elem, N): index for index, elem in enumerate(fourch_pts)}
+		SAN_vtx_ra_endo = np.where(SAN_tags_pts_ra_endo > 0)
 
-	fourch_dict = {float_to_tuple(elem): index for index, elem in enumerate(fourch_pts)}
+		SAN_pts = ra_endo_pts[SAN_vtx_ra_endo,:]
+		SAN_vtx_fourch = np.array([fourch_dict.get(float_to_tuple(san_elem, N)) for san_elem in SAN_pts[0]])
 
-	SAN_vtx_ra_endo = np.where(SAN_tags_pts_ra_endo > 0)
+		## get number of None values
+		n_none = np.sum(SAN_vtx_fourch == None)
+		if n_none == 0 or count > 3:
+			finished = True
+		else:
+			print('[Warning] Could not find SAN points. Increasing the number of decimals...')
+			count+=1
+			N+=1
+		
+		if count > 3:
+			raise Exception("Could not find SAN points")
 
-	SAN_pts = ra_endo_pts[SAN_vtx_ra_endo,:] 
+	output_filename = os.path.join(heartFolder,"pre_simulation","SAN.vtx")
+	write_vtx(filename = output_filename, vtx = SAN_vtx_fourch)
 
-	SAN_vtx_fourch = np.array([fourch_dict.get(float_to_tuple(san_elem)) for san_elem in SAN_pts[0]])
-
-	write_vtx(filename = os.path.join(os.path.join(heartFolder,"pre_simulation","SAN.vtx")), 
-			  vtx      = SAN_vtx_fourch)
+	if os.path.exists(output_filename):
+		print(f'SAN vtx file created: {output_filename}')
 
 
 def find_electrode_UVC_cylinder(uvc,
