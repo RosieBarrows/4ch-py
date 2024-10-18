@@ -919,9 +919,15 @@ def meshtool_extract_ra_surfaces(mesh,surf_folder,input_tags):
 
 def mapping_surfaces(mesh,surf_folder,input_tags):
 	tmp_folder = pjoin(surf_folder, "tmp")
-	files_list = ["myocardium.epi", "myocardium.lvendo", "myocardium.rvendo", "lvepi", "myocardium.rvsept"]
-	for eidx in files_list :
-		connected_component_to_surface(pjoin(tmp_folder, eidx), pjoin(tmp_folder, "epi_endo.surf"), pjoin(tmp_folder, eidx))
+	files_list = [
+		("myocardium.epi", "epi_endo.surf"),
+		("myocardium.lvendo", "epi_endo.surf"),
+		("myocardium.rvendo", "epi_endo.surf"),
+		("lvepi", "myocardium.rvsept.surf"), 
+		("myocardium.rvsept", "myocardium.rvsept.surf")
+	]
+	for eidx, input_surf in files_list :
+		connected_component_to_surface(pjoin(tmp_folder, eidx), pjoin(tmp_folder, input_surf), pjoin(tmp_folder, eidx))
 	
 	fname = pjoin(tmp_folder, "myocardium.epi")
 	surf2vtk(mesh,f"{fname}.surf",f"{fname}.vtk")

@@ -129,8 +129,14 @@ def extract_surfs(base_dir : str, input_tags_setup : str, apex_septum_setup : st
     fu.mycp(fu.pjoin(apex_septum_setup, "ra.lvapex.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.lvapex.vtx"), debug)
     fu.mycp(fu.pjoin(apex_septum_setup, "ra.rvsept_pt.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.rvsept_pt.vtx"), debug)
 
-    milog.info("Copying blank file for RAA apex") 
-    fu.mycp(fu.pjoin(apex_septum_setup, "raa_apex.txt"), fu.pjoin(base_dir, "raa_apex.txt"), debug)
+    milog.info("Copying blank file for RAA apex")
+    raa_apex_template = fu.pjoin(apex_septum_setup, "raa_apex.txt")
+    if not os.path.exists(raa_apex_template) : 
+        milog.warning(f"RAA apex template {raa_apex_template} does not exist. Creating a blank file")
+        with open(raa_apex_template, "w") as f : 
+            f.write("raa_apex\n")
+
+    fu.mycp(raa_apex_template, fu.pjoin(base_dir, "raa_apex.txt"), debug)
 
 def laplace_preparation(endo_surf_path, epi_surf_path, debug) : 
     """Prepares the mesh for the Laplace equation (outside of docker container)""" 

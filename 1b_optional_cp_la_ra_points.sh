@@ -16,8 +16,10 @@ gt_heart_folder=$2
 echo "Copying RA/LA apex and septum files to from GT folder to correct to locations"
 cp $gt_heart_folder/surfaces_uvc_RA/ra/ra.rvsept_pt.vtx $INPUT_heartFolder/surfaces_uvc_RA/ra/ra.rvsept_pt.vtx
 cp $gt_heart_folder/surfaces_uvc_RA/ra/ra.lvapex.vtx $INPUT_heartFolder/surfaces_uvc_RA/ra/ra.lvapex.vtx
-cp $gt_heart_folder/surfaces_uvc_LA/la/uvc/la.lvapex.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/uvc/la.lvapex.vtx
-cp $gt_heart_folder/surfaces_uvc_LA/la/uvc/la.rvsept_pt.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/uvc/la.rvsept_pt.vtx
+
+# cp $gt_heart_folder/surfaces_uvc_LA/la/uvc/la.lvapex.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/uvc/la.lvapex.vtx
+# cp $gt_heart_folder/surfaces_uvc_LA/la/uvc/la.rvsept_pt.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/uvc/la.rvsept_pt.vtx
+
 cp $gt_heart_folder/surfaces_uvc_LA/la/la.rvsept_pt.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/la.rvsept_pt.vtx
 cp $gt_heart_folder/surfaces_uvc_LA/la/la.lvapex.vtx $INPUT_heartFolder/surfaces_uvc_LA/la/la.lvapex.vtx
 

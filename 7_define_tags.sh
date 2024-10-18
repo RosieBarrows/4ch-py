@@ -4,17 +4,18 @@ set -euo pipefail
 
 if [ $# -lt 1 ] ; then
     >&2 echo 'Insufficient arguments supplied'
-    >&2 echo 'Usage: 7_define_tags.sh <heart_folder>'
+    >&2 echo 'Usage: 7_define_tags.sh <heart_folder> <files_folder>'
     exit 1
 fi
 
 clear
 
 INPUT_heartFolder=$1
+files_folder=$2
 mesh="${INPUT_heartFolder}/atrial_fibres/myocardium_fibres_l"
 BiV_folder="${INPUT_heartFolder}/surfaces_uvc/BiV"
-input_tags="./parfiles/tags_presim.json"
-BB_settings="./parfiles/bachmann_bundle_fec_settings.json"
+input_tags="${files_folder}/tags_presim.json"
+BB_settings="${files_folder}/bachmann_bundle_fec_settings.json"
 
 LA_folder="${INPUT_heartFolder}/surfaces_uvc_LA/la/"
 RA_folder="${INPUT_heartFolder}/surfaces_uvc_RA/ra/"
