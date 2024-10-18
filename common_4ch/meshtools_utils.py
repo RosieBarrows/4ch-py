@@ -1208,3 +1208,19 @@ def combine_elem_dats(heartFolder,presimFolder):
 				+"-F bin "
 				+f"-o {presimFolder}/myocardium_AV_FEC_BB_elem_dat_UVC_combined "
 				+"--trim-names")
+
+def convert(msh_path, ifmt, omsh, ofmt) : 
+	cmd = f'meshtool convert -imsh={msh_path}'
+	cmd += f' -ifmt={ifmt}' if ifmt != '' else ''
+	cmd += f' -omsh={omsh}' 
+	cmd += f' -ofmt={ofmt}' if ofmt != '' else ''
+	os.system(cmd)
+
+def convert_to_vtk(msh_path, omsh) : 
+	convert(msh_path, 'carp_txt', omsh, "vtk")
+
+def generate_fibres(msh, op, outmsh) : 
+	os.system(f"meshtool generate_fibres -msh={msh} -op={op} -omsh={outmsh}") 
+
+def insert_submesh(msh, submsh, outmsh, ofmt) : 
+	os.system(f"meshtool insert submesh -msh={msh} -submsh={submsh} -odat={outmsh} -ofmt={ofmt}")
