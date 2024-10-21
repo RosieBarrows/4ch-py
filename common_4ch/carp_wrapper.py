@@ -3,6 +3,7 @@ import json
 
 import common_4ch.file_utils as fu
 import common_4ch.meshtools_utils as mu
+import common_4ch.mesh_utils as mmu
 from common_4ch.process_handler import correct_fibres
 
 from common_4ch.config import configure_logging
@@ -25,6 +26,7 @@ NP=20
 
 class CarpWrapper: 
     def __init__(self, heart_folder) -> None:
+        fch_meshname = 'myocardium_bayer'
         _heart_folder = heart_folder
         _angles = FIBRE_ANGLES
         _debug = False
@@ -65,13 +67,15 @@ class CarpWrapper:
             'beta_epi' : beta_epi
         }
 
+    def set_fch_meshname(self, name):
+        self.fch_meshname = name
+
     def get_meshname_fibres(self, name = 'myocardium_bayer', ext=''):
         mshname = f'{name}_{self._angles["alpha_endo"]}_{self._angles["alpha_epi"]}'
         if ext != '':
             ext = f'.{ext}' if '.' not in ext else ext
             mshname += ext
         return mshname
-
         
     # wraps 
     def w_mguvc(self, model:str, input:str, output:str, tags:str, odir:str, np=NP, laplace_solution=True, id=''):
@@ -194,7 +198,8 @@ class CarpWrapper:
 
         milog.info('## Inserting in submesh ##')
         gen_fibres_mesh = os.path.join(fch_path, fch_name)
-        inserted_mesh = os.path.join(fch_path, f'{fch_name}_bayer_{angles_dict["alpha_endo"]}_{angles_dict["alpha_epi"]}')
+        self.set_fch_meshname(f'{fch_name}_bayer')
+        inserted_mesh = os.path.join(fch_path, self.get_meshname_fibres(self.fch_meshname))
         mu.generate_fibres(gen_fibres_mesh, 2, gen_fibres_mesh)
         mu.insert_submesh(gen_fibres_mesh, meshname, inserted_mesh, 'carp_txt')
         mu.convert(inserted_mesh, 'carp_txt', inserted_mesh, 'vtk_bin')
@@ -280,14 +285,15 @@ class CarpWrapper:
             _vtx = fu.surf2vtx(_surf)
             fu.write_vtx(output_vtx, _vtx, init_row=2)
 
-        fch_mesh = os.path.join(SDIR['uvc'], 'myocardium_bayer_60_-60') 
-        UACFOLDER = self.HEART(SDIR['uac'])
-        FCH = self.HEART(fch_mesh)
-
+        atrium = atrium.lower()
         if atrium not in self.ATRIUM_CHOICES:
             msg = f"Invalid atrium choice: {atrium}"
             milog.error(msg)
             raise ValueError(msg)
+        
+        fch_mesh = os.path.join(SDIR['uvc'], 'myocardium_bayer_60_-60') 
+        UACFOLDER = self.HEART(SDIR['uac'])
+        FCH = self.HEART(fch_mesh)
         
         meshname = os.path.join(UACFOLDER, f'{atrium}/{atrium}')
         endo = os.path.join(UACFOLDER, f'{atrium}/{atrium}_endo.surf')
@@ -311,5 +317,66 @@ class CarpWrapper:
 
         milog.info('## Done ##')
 
-    # def main_surf_to_volume(self) : 
+    def main_surf_to_volume_process(self, atrium) :
+        atrium = atrium.lower()
+        if atrium not in self.ATRIUM_CHOICES:
+            msg = f"Invalid atrium choice: {atrium}"
+            milog.error(msg)
+            raise ValueError(msg)
+        
+        uac_folder = self.HEART(SDIR['uac'])
+        
+        meshname = os.path.join(uac_folder, f'{atrium}/{atrium}')
+        meshname_uac = os.path.join(uac_folder, f'{atrium.upper()}_endo/Fibre_endo_l')
+        endo_fibres = os.path.join(uac_folder, f'{atrium.upper()}_endo/Fibre_endo_l.lon')
+        epi_fibres = os.path.join(uac_folder, f'{atrium.upper()}_endo/Fibre_epi_l.lon')
+        endo_epi_laplace = os.path.join(uac_folder, atrium, 'endo_epi/phie.dat') 
+        outmeshname = os.path.join(uac_folder, atrium, f'{atrium}_fibres_l')
+
+        milog.info('## Mapping fibres from 2D to 3D ##')
+        mmu.laplace_endo2elem(meshname, endo_epi_laplace)
+
+        milog.info('## Computing element centers on both meshes 3D and 2D meshes ##')
+        mmu.compute_elemCenters(meshname, el_type='Tt')
+        mmu.compute_elemCenters(meshname_uac, el_type='Tr')
+
+        milog.info('## Mapping fibres ##')
+        endo_epi_laplace_el = f'{endo_epi_laplace[:-4]}_el.dat'
+        meshname_elem_centers = f'{meshname}_elemCenters.pts'
+        meshname_uac_elem_centers = meshname_uac + '_elemCenters.pts'
+        outmsh_ext = f'{outmeshname}.lon'
+        mmu.map_fibres_3d(endo_epi_laplace_el, meshname_elem_centers, meshname_uac_elem_centers, endo_fibres, epi_fibres, outmsh_ext, f'{meshname}_endo_to_3d.map')
+
+        milog.info('## Finding sheet direction ##')
+        msh_transmural = f'{meshname}_transmural.lon'
+        msh_rot_axes = f'{meshname}_rotation_axes.lon'
+        msh_sheet = f'{outmeshname}_sheet'
+        mmu.find_transmural_direction(meshname, meshname_uac, meshname_elem_centers, meshname_uac_elem_centers, msh_transmural)
+        mmu.find_rotation_axes(outmsh_ext, msh_transmural, msh_rot_axes)
+        mmu.make_sheet_orthogonal(outmsh_ext, msh_transmural, msh_rot_axes, f'{msh_sheet}.lon')
+
+        milog.info('## Converting to VTK for visualization ##')
+        fu.mycp(f'{meshname}.elem', f'{msh_sheet}.elem')
+        fu.mycp(f'{meshname}.pts', f'{msh_sheet}.pts')
+        mu.convert_to_vtk(f'{msh_sheet}', f'{msh_sheet}')
+
+        milog.info('## Done ##')
+
+    def main_mapping_to_biatrial(self, atrium) : 
+        atrium = atrium.lower()
+        if atrium not in self.ATRIUM_CHOICES:
+            msg = f"Invalid atrium choice: {atrium}"
+            milog.error(msg)
+            raise ValueError(msg)
+        
+        uac_folder = self.HEART(SDIR['uac'])
+        uacp = lambda x : os.path.join(uac_folder, x)
+
+        cp_files = [
+            (uacp(f'{atrium}/{atrium}.nod'), uacp(f'{atrium}/{atrium}_fibres_l_sheet.nod')), 
+            (uacp(f'{atrium}/{atrium}.eidx'), uacp(f'{atrium}/{atrium}_fibres_l_sheet.eidx')), 
+            
+        ]
+
+        ## start here
         
