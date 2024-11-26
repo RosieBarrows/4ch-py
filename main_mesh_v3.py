@@ -75,11 +75,11 @@ def main(args):
 	# print('=========================================================================================')
 
 
-	# recompute_raa_base(output_folder,
-	# 			   args.raa_apex_file,
-	# 			   output_folder+"/RA_epi/prodRaRegion.txt",
-	# 			   scale=0.001,
-	# 			   surface=args.surface)
+	recompute_raa_base(output_folder,
+				   args.raa_apex_file,
+				   output_folder+"/RA_epi/prodRaRegion.txt",
+				   scale=0.001,
+				   surface=args.surface)
 	scale_landmarks(output_folder+"/RA_epi/prodRaLandmarks.txt",
 				    scale=0.001)
 
