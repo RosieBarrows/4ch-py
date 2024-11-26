@@ -74,13 +74,13 @@ eval $CMD
 CMD="meshtool insert submesh -submsh=${UACFOLDER}/la/la_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_la_fibres"
 eval $CMD
 
-CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_la_fibres -omsh=${UACFOLDER}/biatrial/biatrial_la_fibres.vtk"
+CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_la_fibres -omsh=${UACFOLDER}/biatrial/biatrial_la_fibres.vtk -ifmt=carp_txt"
 eval $CMD
 
-CMD="meshtool insert submesh -submsh=${UACFOLDER}/ra/ra_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial_la_fibres -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_fibres_l"
+CMD="meshtool insert submesh -submsh=${UACFOLDER}/ra/ra_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial_la_fibres -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_fibres_l -ifmt=vtk"
 eval $CMD
 
-CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_fibres_l -omsh=${UACFOLDER}/biatrial/biatrial_fibres_l.vtk"
+CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_fibres_l -omsh=${UACFOLDER}/biatrial/biatrial_fibres_l.vtk -ifmt=carp_txt"
 eval $CMD
 
 rm ${UACFOLDER}/biatrial/biatrial_la_fibres*
@@ -90,10 +90,10 @@ echo "Mapping to four-chamber mesh..."
 CMD="cp ${UACFOLDER}/biatrial/biatrial.nod ${UACFOLDER}/biatrial/biatrial_fibres_l.nod;cp ${UACFOLDER}/biatrial/biatrial.eidx ${UACFOLDER}/biatrial/biatrial_fibres_l.eidx"
 eval $CMD
 
-CMD="meshtool insert submesh -submsh=${UACFOLDER}/biatrial/biatrial_fibres_l -msh=${FCH} -ofmt=carp_txt -outmsh=${heart_folder}/atrial_fibres/myocardium_fibres_l"
+CMD="meshtool insert submesh -submsh=${UACFOLDER}/biatrial/biatrial_fibres_l -msh=${FCH} -ofmt=carp_txt -outmsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -ifmt=vtk"
 eval $CMD
 
-CMD="meshtool convert -imsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -omsh=${heart_folder}/atrial_fibres/myocardium_fibres_l.vtk"
+CMD="meshtool convert -imsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -omsh=${heart_folder}/atrial_fibres/myocardium_fibres_l.vtk -ifmt=carp_txt"
 eval $CMD
 
 mkdir -p ${heart_folder}/parfiles
