@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 import os 
+from scipy.spatial import ConvexHull
+
 
 from SIMULATION_library.file_utils import read_pts, write_pts, write_vtx, read_vtx
 from common_4ch.mesh_utils import extract_tags
@@ -37,7 +39,13 @@ def compute_rotation_matrix(heartFolder, chamber, input_tags,biv_pts,biv_uvc_z,b
 
     valve_pts = read_pts(f"{heartFolder}/surfaces_uvc/tmp/{valve}.pts")
 
-    valve_centre_pts = np.mean(valve_pts, axis=0)
+    # valve_centre_pts = np.mean(valve_pts, axis=0)
+
+    hull = ConvexHull(valve_pts)
+    hull_pts = valve_pts[hull.vertices]  # Points forming the convex hull
+    valve_centre_pts = np.mean(hull_pts, axis=0)
+
+    write_pts(np.array([apex_pts]), f"{heartFolder}/surfaces_uvc_{chamber}/{chamber.lower()}/biv_apex.pts")
     
     # # Calculate the vector from apex to base
     vector_apba = valve_centre_pts - apex_pts
@@ -60,7 +68,31 @@ def rotate_mesh(mesh_pts, rotation_matrix, fixed_point):
 
     return mesh_pts_rotated
 
-def find_apex(heartFolder,input_tags,chamber,biv_pts,biv_uvc_z,biv_uvc_v):
+def find_apex_SVC(input_tags, heartFolder, LV_apex_pts, RA_pts):
+
+    tags_list_RA_SVC = extract_tags(input_tags,["RA","SVC_ring"])
+
+    tags_RA_SVC_str = ':'.join([str(t) for t in tags_list_RA_SVC])
+
+    cmd = f"meshtool extract surface -ofmt=carp_txt -ifmt=carp_txt -msh={heartFolder}/meshing/myocardium_OUT/myocardium -surf={heartFolder}/meshing/myocardium_OUT/tmp/RA_SVC -op={tags_RA_SVC_str}"
+
+    os.system(cmd)
+    
+
+    RA_SVC_pts = read_pts(f"{heartFolder}/meshing/myocardium_OUT/tmp/RA_SVC.surfmesh.pts")
+
+    distance_vector = []
+
+    for i in range(len(RA_SVC_pts)):
+        distance_vector.append(np.linalg.norm(RA_SVC_pts[i,:] - LV_apex_pts))
+    
+    farthest_pt = RA_SVC_pts[np.argmax(distance_vector), :]
+
+    second_candidate_idx = find_closest_idx(RA_pts, farthest_pt)
+
+    return second_candidate_idx
+
+def find_apex(heartFolder,input_tags,chamber,biv_pts,biv_uvc_z,biv_uvc_v, MV_centre_pts = None):
 
     atrium_pts = read_pts(f"{heartFolder}/surfaces_uvc_{chamber}/{chamber.lower()}/{chamber.lower()}.pts")
 
@@ -68,11 +100,29 @@ def find_apex(heartFolder,input_tags,chamber,biv_pts,biv_uvc_z,biv_uvc_v):
 
     atrium_pts_rotated = rotate_mesh(mesh_pts=atrium_pts, rotation_matrix=rotation_matrix, fixed_point=valve_centre_pts)
 
+    write_pts(atrium_pts_rotated, f"{heartFolder}/surfaces_uvc_{chamber}/{chamber.lower()}/{chamber.lower()}.rotated.pts")
+    write_pts(np.array([valve_centre_pts]), f"{heartFolder}/surfaces_uvc_{chamber}/{chamber.lower()}/valve_centre.pts")
+
     atrium_apex_idx = np.argmax(atrium_pts_rotated[:,2])
+
+
+    if chamber == "RA":
+        ## Sometimes the apex of the RV is too close to the LV so the vector apex - TV is tilted towards the RA free wall. As an alternative, we compute a second candidate for apex: It will be the farthest point from the LV apex in the intersection of the SVC and the LA.
+
+        LV_apex_pts = biv_pts[biv_uvc_v == -1][np.argmin(biv_uvc_z[biv_uvc_v == -1])]
+
+        second_candidate_idx = find_apex_SVC(input_tags = input_tags, heartFolder = heartFolder, LV_apex_pts =LV_apex_pts, RA_pts = atrium_pts)
+
+
+        ## Now we decide which one is the final one based on the min distance to the LV (using the MV centre).
+
+        if np.linalg.norm(atrium_pts[second_candidate_idx] - MV_centre_pts) < np.linalg.norm(atrium_pts[atrium_apex_idx] - MV_centre_pts):
+            atrium_apex_idx = second_candidate_idx
+
 
     write_vtx(vtx=np.asarray([atrium_apex_idx]), filename=f"{heartFolder}/surfaces_uvc_{chamber}/{chamber.lower()}/{chamber.lower()}.lvapex.vtx")
 
-    return atrium_pts
+    return atrium_pts, valve_centre_pts
 
 def find_closest_idx(array, target_point):
     distances = np.linalg.norm(array - target_point, axis=1)
@@ -89,8 +139,8 @@ def select_landmarks(heartFolder, input_tags):
     biv_uvc_v = np.genfromtxt(f"{heartFolder}/surfaces_uvc/BiV/uvc/BiV.uvc_ven.dat")
     input_tags = load_json(input_tags)
 
-    LA_pts = find_apex(heartFolder,input_tags,"LA",biv_pts,biv_uvc_z,biv_uvc_v)
-    RA_pts = find_apex(heartFolder,input_tags,"RA",biv_pts,biv_uvc_z,biv_uvc_v)
+    LA_pts, MV_centre_pts = find_apex(heartFolder,input_tags,"LA",biv_pts,biv_uvc_z,biv_uvc_v)
+    RA_pts, _ = find_apex(heartFolder,input_tags,"RA",biv_pts,biv_uvc_z,biv_uvc_v, MV_centre_pts = MV_centre_pts)
 
     ##### Extract the atrial septum and find the central point
     os.makedirs(f"{heartFolder}/meshing/myocardium_OUT/tmp",exist_ok=True)
@@ -100,8 +150,6 @@ def select_landmarks(heartFolder, input_tags):
     tags_atria_str = ':'.join([str(t) for t in tags_list_atria])
 
     cmd = f"meshtool extract surface -ofmt=carp_txt -ifmt=carp_txt -msh={heartFolder}/meshing/myocardium_OUT/myocardium -surf={heartFolder}/meshing/myocardium_OUT/tmp/atrial_septum -op={tags_atria_str}"
-
-    print(cmd)
 
     os.system(cmd)
 
@@ -118,12 +166,8 @@ def select_landmarks(heartFolder, input_tags):
 
     LA_septum_idx = find_closest_idx(LA_pts, atrial_septum_centre_pts)
 
-    print(LA_septum_idx)
-
     write_vtx(vtx=np.asarray([LA_septum_idx]), filename=f"{heartFolder}/surfaces_uvc_LA/la/la.rvsept_pt.vtx")
 
     RA_septum_idx = find_closest_idx(RA_pts, atrial_septum_centre_pts)
 
     write_vtx(vtx=np.asarray([RA_septum_idx]), filename=f"{heartFolder}/surfaces_uvc_RA/ra/ra.rvsept_pt.vtx")
-
-    print(RA_septum_idx)
