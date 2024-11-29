@@ -2,6 +2,8 @@ import argparse
 import warnings
 import os
 
+from common_4ch.process_handler import correct_fibres
+
 def main(args):
 
 	# os.system("clear")
@@ -46,7 +48,8 @@ def main(args):
 	# Correcting fibre orientation
 	# ----------------------------------------------------------------------------------------------
 	print(" ## Correcting fibre orientation ##")
-	os.system("./correct_fibres.py "+mshPath+"/BiV")
+	# os.system("./correct_fibres.py "+mshPath+"/BiV")
+	correct_fibres(os.path.join(mshPath, "BiV"))
 
 	# ----------------------------------------------------------------------------------------------
 	# Substituted biv.lon with new fibres

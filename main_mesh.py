@@ -9,7 +9,7 @@ import warnings
 
 def main(args):
 
-	os.system("clear")
+	# os.system("clear")
 
 	print(args.raa_apex_file)
 

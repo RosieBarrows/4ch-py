@@ -94,7 +94,7 @@ def find_landmarks(output_folder,
 	la_laa_septal_posterior_landmarks,laa_region_landmarks = find_LAA_septal_posterior_points(surfaces_la,
 																	np.concatenate((la_roof_landmarks,la_lspv_rspv_posterior_landmarks),axis=0),
 																	scale_factor=scale_factor)
-	
+		
 	landmarks = np.concatenate((la_roof_landmarks,la_laa_septal_posterior_landmarks),axis=0)
 	landmarks = np.concatenate((landmarks,la_lspv_rspv_posterior_landmarks),axis=0)
 
@@ -523,15 +523,27 @@ def find_LAA_septal_posterior_points(surfaces_dct,
 	n_septum = n_septum/np.linalg.norm(n_septum)
 
 	vtx_septum_area = []
-	for i in range(surf_pts.shape[0]):
-		dot_prod_vertical = np.dot(surf_pts[i,:]-landmark_laa_posterior,long_axis)
-		if dot_prod_vertical>5000.0*scale_factor:
-			vtx_septum_area.append(i)
+	dot_prod_vertical_vector = np.ndarray((surf_pts.shape[0],),dtype=float)
+	for ix, pt in enumerate(surf_pts):
+		dot_prod_vertical_vector[ix] = np.dot(pt-landmark_laa_posterior,long_axis)
+		
+	threshold = np.min(np.percentile(dot_prod_vertical_vector,75), 5000.0*scale_factor)
+
+	for dot_p in dot_prod_vertical_vector:
+		if dot_p>threshold:
+			vtx_septum_area.append(ix)
+
+	# for i in range(surf_pts.shape[0]):
+	# 	dot_prod_vertical = np.dot(surf_pts[i,:]-landmark_laa_posterior,long_axis)
+	# 	if dot_prod_vertical>50.0*scale_factor:
+	# 		vtx_septum_area.append(i)
 	vtx_septum_area = np.array(vtx_septum_area)
 
 	idx_posterior_septum = find_point_along_direction(surf_pts,vtx_septum_area,-n_septum,landmark_laa_posterior)
-
 	landmark_sept_posterior = surf_pts[idx_posterior_septum,:]
+
+	if idx_posterior_septum is None:
+		raise Exception("Cannot find septal posterior point.")
 
 	landmarks = np.concatenate((landmark_laa_posterior,landmark_sept_posterior),axis=0)
 	landmarks = np.reshape(landmarks,(2,3))

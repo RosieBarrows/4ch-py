@@ -58,78 +58,78 @@ def extract_surfs(base_dir : str, input_tags_setup : str, apex_septum_setup : st
     for folder in list_of_folders:
         fu.mymkdir(folder)
     
-    # Extract the base
-    milog.info("Extracting the base")
+    milog.info("[1] Extract the base")
+    milog.info("\t[1.1]Extracting the base")
     meshtool_extract_base(mesh, surf_folder, input_tags)
 
-    milog.info("Extracting epi, LV endo and RV endo")
+    milog.info("\t[1.2]Extracting epi, LV endo and RV endo")
     meshtool_extract_surfaces_lv_rv_epi(mesh, surf_folder, input_tags)
 
-    milog.info("Extracting septum")
+    milog.info("\t[1.3]Extracting septum")
     meshtool_extract_septum(mesh, surf_folder, input_tags)
 
-    milog.info("Mapping surfaces")
+    milog.info("\t[1.4]Mapping surfaces")
     mapping_surfaces(mesh, surf_folder, input_tags)
 
-    milog.info("Removing the septum")
+    milog.info("\t[1.5]Removing the septum")
     remove_sept(mesh, surf_folder)
 
-    milog.info("Preparing vtx files for UVCs")
+    milog.info("\t[1.6]Preparing vtx files for UVCs")
     prepare_vtx_for_uvc(surf_folder)
 
-    # extract surfacs for LA
-    milog.info("Extracting the LA base")
+    milog.info("[2] extract surfacs for LA")
+    milog.info("\t[2.1]Extracting the LA base")
     meshtool_extract_la_base(mesh, surf_folder_la, input_tags)
 
-    milog.info("Extracting the LA epi and LA endo")
+    milog.info("\t[2.2]Extracting the LA epi and LA endo")
     meshtool_extract_la_surfaces(mesh, surf_folder_la, input_tags)
 
-    milog.info("Mapping LA surfaces")
+    milog.info("\t[2.3]Mapping LA surfaces")
     mapping_surfaces_la(mesh, surf_folder_la, input_tags)
 
-    # extract surfaces for RA
-    milog.info("Extracting the RA base")
+    milog.info("[3]extract surfaces for RA")
+    milog.info("\t[3.1]Extracting the RA base")
     meshtool_extract_ra_base(mesh, surf_folder_ra, input_tags)
 
-    milog.info("Extracting the RA epi and RA endo")
+    milog.info("\t[3.2]Extracting the RA epi and RA endo")
     meshtool_extract_ra_surfaces(mesh, surf_folder_ra, input_tags)
 
-    milog.info("Mapping surfaces RA")
+    milog.info("\t[3.3]Mapping surfaces RA")
     mapping_surfaces_ra(mesh, surf_folder_ra, input_tags)
 
-    # Extracting the BiV mesh
-    milog.info("Extracting the biventricular mesh ")
+    milog.info("[3] Extracting the BiV mesh")
+    milog.info("\t[3.1]Extracting the biventricular mesh ")
     meshtool_extract_biv(mesh, surf_folder, input_tags)
 
-    milog.info("Mapping vtx files from four-chamber mesh to BiV mesh ")
+    milog.info("\t[3.2]Mapping vtx files from four-chamber mesh to BiV mesh ")
     meshtool_map_vtx(surf_folder)
 
-    milog.info("Renaming files ")
+    milog.info("\t[3.3]Renaming files ")
     renaming_myo_files(surf_folder)
 
-    # Extracting the LA mesh
-    milog.info("Extracting the left atrial mesh")
+    milog.info("[4] Extracting the LA mesh")
+    milog.info("\t[4.1]Extracting the left atrial mesh")
     meshtool_extract_la_for_UVCs(mesh, surf_folder_la, input_tags)
 
-    milog.info("Mapping vtx files from four-chamber mesh to left atrial mesh ")
+    milog.info("\t[4.2]Mapping vtx files from four-chamber mesh to left atrial mesh ")
     meshtool_map_vtx_la(surf_folder_la)
 
-    milog.info("Copying blank files for LA apex and septum ")
+    milog.info("\t[4.3]Copying blank files for LA apex and septum ")
     fu.mycp(fu.pjoin(apex_septum_setup, "la.lvapex.vtx"), fu.pjoin(surf_folder_la, "la/la.lvapex.vtx"), debug)
     fu.mycp(fu.pjoin(apex_septum_setup, "la.rvsept_pt.vtx"), fu.pjoin(surf_folder_la, "la/la.rvsept_pt.vtx"), debug)
 
-    # Extracting the RA mesh
-    milog.info("Extracting the right atrial mesh")
+    milog.info("[5] Extracting the RA mesh")
+    milog.info("\t[5.1]Extracting the right atrial mesh")
     meshtool_extract_ra_for_UVCs(mesh, surf_folder_ra, input_tags)
 
-    milog.info("Mapping vtx files from four-chamber mesh to right atrial mesh ")
+    milog.info("\t[5.2]Mapping vtx files from four-chamber mesh to right atrial mesh ")
     meshtool_map_vtx_ra(surf_folder_ra)
     
-    milog.info("Copying blank files for RA apex and septum ")
+    milog.info("\t[5.3]Copying blank files for RA apex and septum ")
     fu.mycp(fu.pjoin(apex_septum_setup, "ra.lvapex.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.lvapex.vtx"), debug)
     fu.mycp(fu.pjoin(apex_septum_setup, "ra.rvsept_pt.vtx"), fu.pjoin(surf_folder_ra, "ra/ra.rvsept_pt.vtx"), debug)
 
-    milog.info("Copying blank file for RAA apex")
+    milog.info("\t[5.4]Copying blank file for RAA apex")
     raa_apex_template = fu.pjoin(apex_septum_setup, "raa_apex.txt")
     if not os.path.exists(raa_apex_template) : 
         milog.warning(f"RAA apex template {raa_apex_template} does not exist. Creating a blank file")
