@@ -1,10 +1,10 @@
 #!/bin/bash
 
-heart_folder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+heart_folder=$1
 
 FCH="${heart_folder}/surfaces_uvc/myocardium_bayer_60_-60"
 UACFOLDER="${heart_folder}/atrial_fibres/UAC/"
-
+BB_settings=${heart_folder}/parfiles
 # ---------------------------------------------------------------------------------
 
 CMD="python3 main_laplace.py --meshname ${UACFOLDER}/la/la 
@@ -19,7 +19,8 @@ CMD="python3 main_laplace.py --meshname ${UACFOLDER}/ra/ra
 							--outdir ${UACFOLDER}/ra/endo_epi/"
 eval $CMD
 
-# ---------------------------------------------------------------------------------
+# # --------------------------------------------------------------------------------
+
 
 CMD="python3 main_surf_to_volume.py --meshname ${UACFOLDER}/la/la
 								   --meshname_uac ${UACFOLDER}/LA_endo/Fibre_endo_l
@@ -73,13 +74,13 @@ eval $CMD
 CMD="meshtool insert submesh -submsh=${UACFOLDER}/la/la_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_la_fibres"
 eval $CMD
 
-CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_la_fibres -omsh=${UACFOLDER}/biatrial/biatrial_la_fibres.vtk"
+CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_la_fibres -omsh=${UACFOLDER}/biatrial/biatrial_la_fibres.vtk -ifmt=carp_txt"
 eval $CMD
 
-CMD="meshtool insert submesh -submsh=${UACFOLDER}/ra/ra_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial_la_fibres -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_fibres_l"
+CMD="meshtool insert submesh -submsh=${UACFOLDER}/ra/ra_fibres_l_sheet -msh=${UACFOLDER}/biatrial/biatrial_la_fibres -ofmt=carp_txt -outmsh=${UACFOLDER}/biatrial/biatrial_fibres_l -ifmt=vtk"
 eval $CMD
 
-CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_fibres_l -omsh=${UACFOLDER}/biatrial/biatrial_fibres_l.vtk"
+CMD="meshtool convert -imsh=${UACFOLDER}/biatrial/biatrial_fibres_l -omsh=${UACFOLDER}/biatrial/biatrial_fibres_l.vtk -ifmt=carp_txt"
 eval $CMD
 
 rm ${UACFOLDER}/biatrial/biatrial_la_fibres*
@@ -89,8 +90,11 @@ echo "Mapping to four-chamber mesh..."
 CMD="cp ${UACFOLDER}/biatrial/biatrial.nod ${UACFOLDER}/biatrial/biatrial_fibres_l.nod;cp ${UACFOLDER}/biatrial/biatrial.eidx ${UACFOLDER}/biatrial/biatrial_fibres_l.eidx"
 eval $CMD
 
-CMD="meshtool insert submesh -submsh=${UACFOLDER}/biatrial/biatrial_fibres_l -msh=${FCH} -ofmt=carp_txt -outmsh=${heart_folder}/atrial_fibres/myocardium_fibres_l"
+CMD="meshtool insert submesh -submsh=${UACFOLDER}/biatrial/biatrial_fibres_l -msh=${FCH} -ofmt=carp_txt -outmsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -ifmt=vtk"
 eval $CMD
 
-CMD="meshtool convert -imsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -omsh=${heart_folder}/atrial_fibres/myocardium_fibres_l.vtk"
+CMD="meshtool convert -imsh=${heart_folder}/atrial_fibres/myocardium_fibres_l -omsh=${heart_folder}/atrial_fibres/myocardium_fibres_l.vtk -ifmt=carp_txt"
 eval $CMD
+
+mkdir -p ${heart_folder}/parfiles
+cp ./parfiles/bachmann_bundle_fec_settings.json $BB_settings

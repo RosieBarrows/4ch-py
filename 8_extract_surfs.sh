@@ -2,7 +2,7 @@
 
 clear
 
-INPUT_heartFolder=$(cat /data/Dropbox/4ch-py/parfiles/heartFolder.txt)
+INPUT_heartFolder=$1
 mesh="${INPUT_heartFolder}/atrial_fibres/myocardium_AV_FEC_BB"
 BiV_folder="${INPUT_heartFolder}/surfaces_uvc/BiV"
 input_tags="./parfiles/tags_presim.json"

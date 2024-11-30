@@ -34,7 +34,7 @@ def main(args):
 	f_input.close()
 
 
-	separate_FEC_lvrv(original_mesh+".elem",
+	separate_FEC_lvrv_sets(original_mesh+".elem",
                            heartFolder+'/pre_simulation/myocardium_AV_FEC_BB.elem',
                            heartFolder+'/sims_folder/LV_endo.surf',
                            heartFolder+'/sims_folder/RV_endo.surf',
