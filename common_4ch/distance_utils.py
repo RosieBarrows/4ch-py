@@ -527,7 +527,7 @@ def find_LAA_septal_posterior_points(surfaces_dct,
 	for ix, pt in enumerate(surf_pts):
 		dot_prod_vertical_vector[ix] = np.dot(pt-landmark_laa_posterior,long_axis)
 		
-	threshold = np.min(np.percentile(dot_prod_vertical_vector,75), 5000.0*scale_factor)
+	threshold = min(np.percentile(dot_prod_vertical_vector,75), 5000.0*scale_factor)
 
 	for dot_p in dot_prod_vertical_vector:
 		if dot_p>threshold:
