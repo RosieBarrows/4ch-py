@@ -62,7 +62,7 @@ class CarpWrapper:
     
     def run_command(self, command):
         command_name = command.split(' ')[0].split('/')[-1]
-        
+
         milog.info(f"Running command:\n\t{command_name}\n")
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if self._debug:
@@ -109,7 +109,7 @@ class CarpWrapper:
         cmd = f'mguvc {id_str} --model-name {model} --input-model {input} --output-model {output} --np {np} --tags-file {tags} --output-dir {odir}'
         cmd += ' --laplace-solution' if laplace_solution else ''
 
-        self.run_cmd(cmd)
+        self.run_command(cmd)
 
     def w_GlVTKConvert(self, meshname:str, nodedata_list:list, output:str, trim_names = True):
         nodedata = ' -n '.join([n for n in nodedata_list])
@@ -117,26 +117,26 @@ class CarpWrapper:
         cmd = f'GlVTKConvert -m {meshname} -n {nodedata} -o {output}'
         cmd += ' --trim-names' if trim_names else ''
 
-        self.run_cmd(cmd)
+        self.run_command(cmd)
     
     def w_GlRuleFibres(self, meshname:str, uvc_apba:str, uvc_epi:str, uvc_lv:str, uvc_rv:str, output:str, angles_dic=FIBRE_ANGLES, type='biv'):
         angles_str = ' '.join([f'-{k} {v}' for k,v in angles_dic.items()]) # -alpha_endo 60 -alpha_epi -60 -beta_endo -65 -beta_epi 25
         cmd = f'GlRuleFibres -m {meshname} -t {type} -a {uvc_apba} -e {uvc_epi} -l {uvc_lv} -r {uvc_rv} {angles_str} -o {output}'
 
-        self.run_cmd(cmd)
+        self.run_command(cmd)
 
     def w_GlElemCenters(self, meshname:str, output:str):
         cmd = f'GlElemCenters -m {meshname} -o {output}'
 
-        self.run_cmd(cmd)
+        self.run_command(cmd)
 
     def w_carp_pt(self, parfile:str, simID:str, meshname:str, stim0:str, stim1:str):
         cmd = f'carp.pt +F {parfile} -simID {simID} -meshname {meshname} -stimulus[0].vtx_file {stim0} -stimulus[1].vtx_file {stim1}'
-        self.run_cmd(cmd)
+        self.run_command(cmd)
 
     def w_igbextract(self, igb:str, out:str):
         cmd = f'igbextract {igb} -o ascii -f 0 -F 0 -O {out}'
-        self.run_cmd(cmd)
+        self.run_command(cmd)
 
     # main functions
     def main_uvc_process(self, input_tags: str, etags:str, apex_septum:str, msh_subpath =SDIR['mesh']): 
