@@ -1,6 +1,9 @@
 import os 
 import json 
 
+import sys
+import subprocess
+
 import common_4ch.file_utils as fu
 import common_4ch.meshtools_utils as mu
 import common_4ch.mesh_utils as mmu
@@ -23,6 +26,7 @@ FIBRE_ANGLES = {
     'beta_epi' : '25'
 }
 NP=20
+
 
 class CarpWrapper: 
     def __init__(self, heart_folder) -> None:
@@ -55,6 +59,27 @@ class CarpWrapper:
     def run_cmd(self, cmd) :
         milog.info(f"Running command:\n\t{cmd}\n")
         os.system(cmd)
+    
+    def run_command(self, command):
+        command_name = command.split(' ')[0].split('/')[-1]
+        
+        milog.info(f"Running command:\n\t{command_name}\n")
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if self._debug:
+            print(result.stdout)
+            print(result.stderr, file=sys.stderr)  # Print error to stderr
+
+        if result.returncode != 0:
+            error_log_name = f'{command_name}_error.log'
+            milog.error(f"Error running command: {command}")
+
+            with open(error_log_name, 'w') as f:
+                f.write(f"Error running command: {command}\n\n")
+                f.write(f"Error code: {result.returncode}\n\n")
+                f.write(f"stdout: {result.stdout}\n\n")
+                f.write(f"stderr: {result.stderr}\n\n")
+            
+            raise Exception(f"Error running command: {command}")
 
     def set_fibres_angles(self, angles:dict):
         self._angles = angles

@@ -9,8 +9,6 @@ import warnings
 
 def main(args):
 
-	os.system("clear")
-
 	warnings.warn("MAKE SURE YOU HAVE SELECTED APEX/SEPTUM IN THE LA/RA")
 	warnings.warn("MAKE SURE TAGS IN ETAGS FILES ARE CORRECT")
 
@@ -75,18 +73,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-
-    parser.add_argument('--heartFolder', type=str, default=None,
-                        help='Provide path to the heart folder')
-
-    parser.add_argument('--input_tags_setup', type=str, default="./parfiles/input_tags_setup.json",
-                        help='Provide json file with input tags settings')
-
-    parser.add_argument('--etags_setup', type=str, default="./parfiles/etags",
-                        help='Provide folder with etags files for BiV, LA and RA')
-
-    parser.add_argument('--apex_septum_setup', type=str, default="./parfiles/apex_septum_templates",
-                        help='Provide folder with templates for LA/RA apex and septum vtx files')
+	
+    parser.add_argument('--heartFolder', type=str, default=None, help='Provide path to the heart folder')
+	
+    parser.add_argument('--input_tags_setup', type=str, default="./parfiles/input_tags_setup.json", help='Provide json file with input tags settings')
+	
+    parser.add_argument('--etags_setup', type=str, default="./parfiles/etags", help='Provide folder with etags files for BiV, LA and RA')
+	
+    parser.add_argument('--apex_septum_setup', type=str, default="./parfiles/apex_septum_templates", help='Provide folder with templates for LA/RA apex and septum vtx files')
+	
+    parser.add_argument('--meshing-folder', type=str, default='meshing/myocardium_OUT/myocardium')
 
     args = parser.parse_args()
 
