@@ -13,8 +13,16 @@ def main(args):
 	os.system("clear")
 
 	warnings.warn("MAKE SURE INPUT TAGS ARE CORRECT")
+      
+	print(args)
 
 	input_tags = load_json(args.input_tags_setup)
+	
+	try:
+		print(f'input tags [FEC]: {input_tags["FEC"]}') 
+	except KeyError:
+		print(f'input tags [FEC_LV]: {input_tags["FEC_LV"]}')
+		input_tags['FEC'] = input_tags['FEC_LV']
 
 	heartFolder = args.heartFolder
 	bivFolder = args.bivFolder

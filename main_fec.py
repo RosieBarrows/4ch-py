@@ -28,6 +28,13 @@ def main(args):
 	f_input = open(input_tags,"r")
 	original_tags = json.load(f_input)
 	f_input.close()
+	
+	try: 
+		print(f' input_tags [FEC]: {original_tags["FEC"]}')
+	except KeyError:
+		print(f' input_tags [FEC_LV]: {original_tags["FEC_LV"]}')
+		original_tags['FEC'] = original_tags['FEC_LV']
+
 
 	f_input = open(lvrv_tags,"r")
 	new_tags = json.load(f_input)
@@ -35,12 +42,12 @@ def main(args):
 
 
 	separate_FEC_lvrv(original_mesh+".elem",
-                           heartFolder+'/pre_simulation/myocardium_AV_FEC_BB.elem',
-                           heartFolder+'/sims_folder/LV_endo.surf',
-                           heartFolder+'/sims_folder/RV_endo.surf',
-                           heartFolder+'/pre_simulation/myocardium_AV_FEC_BB_lvrv.elem',
-                           original_tags,
-                           new_tags)                                                                       
+						   heartFolder+'/pre_simulation/myocardium_AV_FEC_BB.elem',
+						   heartFolder+'/sims_folder/LV_endo.surf',
+						   heartFolder+'/sims_folder/RV_endo.surf',
+						   heartFolder+'/pre_simulation/myocardium_AV_FEC_BB_lvrv.elem',
+						   original_tags,
+						   new_tags)                                                                       
 
 	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.lon "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.lon")
 	os.system("cp "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB.pts "+heartFolder+"/pre_simulation/myocardium_AV_FEC_BB_lvrv.pts")

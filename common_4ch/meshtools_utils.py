@@ -584,10 +584,13 @@ def meshtool_extract_surfaces_lv_rv_epi(mesh,surf_folder,input_tags):
 	tags_list_vent_string = get_tags_from_setup(input_tags, ["LV","RV"])
 	tags_list_VPs_string = get_tags_from_setup(input_tags, ["MV","TV","AV","PV", "PArt"])
 
-	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/epi_endo", f"{tags_list_vent_string}-{tags_list_VPs_string}")
-	os.system(f"meshtool extract unreachable -msh={surf_folder}/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh={surf_folder}/tmp/epi_endo_CC")
-	
 	tmp_folder = pjoin(surf_folder, "tmp")
+
+	extract_surface_wrapper(mesh, f"{surf_folder}/tmp/epi_endo", f"{tags_list_vent_string}-{tags_list_VPs_string}")
+	unreachable_cmd = f"meshtool extract unreachable -msh={surf_folder}/tmp/epi_endo.surfmesh -ifmt=vtk -ofmt=vtk -ofmt=carp_txt -submsh={surf_folder}/tmp/epi_endo_CC"
+	print(unreachable_cmd)
+	os.system(unreachable_cmd)
+	
 	tmp_files = os.listdir(tmp_folder)
 	epi_endo_CC = find_and_append(tmp_files, "epi_endo_CC")
 	epi_endo_CC = keep_n_connected_components(epi_endo_CC, tmp_folder, keep_n=3)

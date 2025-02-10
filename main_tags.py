@@ -38,6 +38,12 @@ def main(args):
 	MESHNAME_FEC="myocardium_AV_FEC"
 	MESHNAME_BB="myocardium_AV_FEC_BB"
 
+	try:
+		print(f'input tags [FEC]: {input_tags["FEC"]}') 
+	except KeyError:
+		print(f'input tags [FEC_LV]: {input_tags["FEC_LV"]}')
+		input_tags['FEC'] = input_tags['FEC_LV']
+		
 	# ----------------------------------------------------------------------------------------------
 	# Defining the AV separating plane
 	# ----------------------------------------------------------------------------------------------
@@ -53,13 +59,15 @@ def main(args):
 	biv_mesh=bivFolder+"/BiV"
 	Zbiv_file=bivFolder+"/uvc/BiV.uvc_z.dat"
 	RHObiv_file=bivFolder+"/uvc/BiV.uvc_rho.dat"
+	
+        
 
 	define_FEC(presimFolder+"/"+MESHNAME_AV+".elem",
 						  biv_mesh,
 						  Zbiv_file,
 						  RHObiv_file,
 						  presimFolder+"/"+MESHNAME_FEC+".elem",
-						  input_tags["FEC"],
+						  input_tags['FEC'],
 						  include_septum=bivFolder+"/BiV.rvsept.surf",
 						  FEC_height=bb_settings["FEC_height"])
 
