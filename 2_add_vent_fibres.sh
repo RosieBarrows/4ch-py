@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [ $# -lt 2 ] ; then
     >&2 echo 'Insufficient arguments supplied'
-    >&2 echo 'Usage: "2_add_vent_fibres".sh <INPUT_heartFolder> <carp_root>'
+    >&2 echo 'Usage: "2_add_vent_fibres".sh <INPUT_heartFolder> <carp_root> [MESHPATH]'
     exit 1
 fi
 
@@ -15,7 +15,7 @@ four_chamber_path="${INPUT_heartFolder}/surfaces_uvc/"
 four_chamber_name="myocardium"
 
 carp_root=$2
-mesh_input=${3:=-meshing/myocardium_OUT/myocardium}
+mesh_input=${3:-meshing/myocardium_OUT/myocardium}
 CARP_FOLDER="${carp_root}/bin/"
 alphaENDO=60	
 alphaEPI=-60

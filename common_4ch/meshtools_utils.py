@@ -145,7 +145,9 @@ def meshtool_extract_surfaces(meshname,
 	
 	def extract_surface(surf, tag_init, tag_end, conn=":"):
 		""" Creates meshtool commands from function inputs """
-		return f"meshtool extract surface -msh={meshname} -surf={output_folder}/tmp/{surf} -op={tag_init}{conn}{tag_end} -ofmt=vtk"
+		cmd = f"meshtool extract surface -msh={meshname} -surf={output_folder}/tmp/{surf} -op={tag_init}{conn}{tag_end} -ofmt=vtk"
+       		print(f'\n{cmd}\n) 
+        	return cmd 
 
 	tag_la_string = get_tags_from_setup(tags_setup,["LA"])
 	tag_ra_string = get_tags_from_setup(tags_setup,["RA"])
