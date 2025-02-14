@@ -49,6 +49,7 @@ def find_and_append(list_of_files, prefix) :
 def keep_n_connected_components(cc_list, folder, keep_n=2) : 
 	print(f"Checking connected component size and keeping {keep_n} largest ...")
 	if len(cc_list) > keep_n : 
+		output_cc_list = []
 		cc_size = np.zeros((len(cc_list),),dtype=int)
 		for i,cc in enumerate(cc_list):
 			surf = read_elem(f"{folder}/{cc}.elem",el_type="Tr",tags=False)
@@ -58,7 +59,10 @@ def keep_n_connected_components(cc_list, folder, keep_n=2) :
 		sorted_size = np.argsort(cc_size)
 		
 		for ix in range(keep_n) :
-			cc_list[ix] = cc_list_old[sorted_size[-ix-1]]
+			keep_this = cc_list_old[sorted_size[-ix-1]]
+			print(f"Keeping {keep_this}")
+			output_cc_list.append(keep_this)
+			# cc_list[ix] = cc_list_old[sorted_size[-ix-1]]
 		
 		for ix in range(len(cc_list)-keep_n):
 			myrm(f"{folder}/{cc_list_old[sorted_size[ix]]}.*")
